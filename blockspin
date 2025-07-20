@@ -1,0 +1,235 @@
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
+
+local player = Players.LocalPlayer
+local guiSaveKey = "GuiPos_" .. player.UserId
+
+-- โหลดตำแหน่ง UI ที่บันทึกไว้
+local guiPos = nil
+pcall(function()
+	local val = player:WaitForChild("PlayerGui"):FindFirstChild(guiSaveKey)
+	if val then
+		guiPos = HttpService:JSONDecode(val.Value)
+	end
+end)
+
+-- สร้าง ScreenGui หลัก
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "MainGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- UI หลัก
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 230, 0, 210)
+frame.Position = guiPos and UDim2.new(0, guiPos.x, 0, guiPos.y) or UDim2.new(0.5, -115, 0.5, -105)
+frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+frame.Active = true
+frame.Draggable = true
+frame.Parent = screenGui
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
+
+-- แถบหัว
+local banner = Instance.new("Frame")
+banner.Size = UDim2.new(1, 0, 0.12, 0)
+banner.Position = UDim2.new(0, 0, 0, 0)
+banner.BackgroundColor3 = Color3.fromRGB(30, 144, 255)
+banner.Parent = frame
+Instance.new("UICorner", banner).CornerRadius = UDim.new(0, 12)
+
+local bannerText = Instance.new("TextLabel")
+bannerText.Size = UDim2.new(1, 0, 1, 0)
+bannerText.BackgroundTransparency = 1
+bannerText.Text = "AKB akibus shop"
+bannerText.TextColor3 = Color3.new(1, 1, 1)
+bannerText.Font = Enum.Font.GothamBold
+bannerText.TextSize = 20
+bannerText.Parent = banner
+
+local label = Instance.new("TextLabel")
+label.Size = UDim2.new(1, 0, 0.2, 0)
+label.Position = UDim2.new(0, 0, 0.12, 0)
+label.BackgroundTransparency = 1
+label.Text = "📟 Auto Rejoin System"
+label.TextColor3 = Color3.new(1,1,1)
+label.TextSize = 16
+label.Font = Enum.Font.GothamBold
+label.Parent = frame
+
+local inputBox = Instance.new("TextBox")
+inputBox.Size = UDim2.new(0.8, 0, 0.15, 0)
+inputBox.Position = UDim2.new(0.1, 0, 0.37, 0)
+inputBox.PlaceholderText = "Time in seconds"
+inputBox.Text = "300"
+inputBox.TextColor3 = Color3.new(1,1,1)
+inputBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+inputBox.ClearTextOnFocus = false
+inputBox.Font = Enum.Font.Gotham
+inputBox.TextSize = 16
+inputBox.Parent = frame
+Instance.new("UICorner", inputBox).CornerRadius = UDim.new(0, 12)
+
+local runBtn = Instance.new("TextButton")
+runBtn.Size = UDim2.new(0.8, 0, 0.15, 0)
+runBtn.Position = UDim2.new(0.1, 0, 0.55, 0)
+runBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+runBtn.Text = "▶ Start Timer"
+runBtn.TextColor3 = Color3.new(1,1,1)
+runBtn.Font = Enum.Font.GothamBold
+runBtn.TextSize = 16
+runBtn.Parent = frame
+Instance.new("UICorner", runBtn).CornerRadius = UDim.new(0, 14)
+
+local teleportBtn = Instance.new("TextButton")
+teleportBtn.Size = UDim2.new(0.8, 0, 0.15, 0)
+teleportBtn.Position = UDim2.new(0.1, 0, 0.73, 0)
+teleportBtn.BackgroundColor3 = Color3.fromRGB(0, 128, 255)
+teleportBtn.Text = "🔁 Change Server"
+teleportBtn.TextColor3 = Color3.new(1,1,1)
+teleportBtn.Font = Enum.Font.GothamBold
+teleportBtn.TextSize = 16
+teleportBtn.Parent = frame
+Instance.new("UICorner", teleportBtn).CornerRadius = UDim.new(0, 14)
+
+local walkBtn = Instance.new("TextButton")
+walkBtn.Size = UDim2.new(0.8, 0, 0.15, 0)
+walkBtn.Position = UDim2.new(0.1, 0, 0.91, 0)
+walkBtn.BackgroundColor3 = Color3.fromRGB(255, 140, 0)
+walkBtn.Text = "🚶 ไปสถานีตำรวจ"
+walkBtn.TextColor3 = Color3.new(1,1,1)
+walkBtn.Font = Enum.Font.GothamBold
+walkBtn.TextSize = 16
+walkBtn.Parent = frame
+Instance.new("UICorner", walkBtn).CornerRadius = UDim.new(0, 14)
+
+-- ปุ่มพับ UI
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Size = UDim2.new(0, 30, 0, 30)
+toggleBtn.Position = UDim2.new(0, 10, 0, 10)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+toggleBtn.TextColor3 = Color3.new(1,1,1)
+toggleBtn.Text = "-"
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.TextSize = 20
+toggleBtn.Parent = screenGui
+Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 8)
+
+toggleBtn.MouseButton1Click:Connect(function()
+	frame.Visible = not frame.Visible
+	toggleBtn.Text = frame.Visible and "-" or "+"
+end)
+
+-- บันทึกตำแหน่ง UI เวลาเลื่อน
+frame:GetPropertyChangedSignal("Position"):Connect(function()
+	local pos = frame.Position
+	local saveVal = player:WaitForChild("PlayerGui"):FindFirstChild(guiSaveKey)
+	if not saveVal then
+		saveVal = Instance.new("StringValue")
+		saveVal.Name = guiSaveKey
+		saveVal.Parent = player:WaitForChild("PlayerGui")
+	end
+	saveVal.Value = HttpService:JSONEncode({x = pos.X.Offset, y = pos.Y.Offset})
+end)
+
+-- ย้ายเซิร์ฟเวอร์ไปห้องที่คนน้อย
+local function teleportToSmallestServer()
+	local success, servers = pcall(function()
+		return HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"))
+	end)
+	if success and servers and servers.data then
+		for _, s in ipairs(servers.data) do
+			if s.playing < s.maxPlayers then
+				TeleportService:TeleportToPlaceInstance(game.PlaceId, s.id, player)
+				break
+			end
+		end
+	end
+end
+
+-- ระบบจับเวลา
+local running = false
+local conn
+
+local function formatTime(t)
+	local m = math.floor(t / 60)
+	local s = math.floor(t % 60)
+	return string.format("%02d:%02d", m, s)
+end
+
+local function startTimer()
+	if running then return end
+	local seconds = tonumber(inputBox.Text)
+	if not seconds then return end
+
+	running = true
+	local start = os.clock()
+	local finish = start + seconds
+
+	conn = RunService.Heartbeat:Connect(function()
+		local timeLeft = math.max(0, finish - os.clock())
+		label.Text = "⏳ " .. formatTime(timeLeft)
+		if timeLeft <= 0 then
+			conn:Disconnect()
+			running = false
+			teleportToSmallestServer()
+			runBtn.Text = "▶ Start Timer"
+			runBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+		end
+	end)
+
+	runBtn.Text = "■ Stop Timer"
+	runBtn.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
+end
+
+local function stopTimer()
+	if conn then conn:Disconnect() end
+	running = false
+	label.Text = "📟 Auto Rejoin System"
+	runBtn.Text = "▶ Start Timer"
+	runBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+end
+
+runBtn.MouseButton1Click:Connect(function()
+	if running then
+		stopTimer()
+	else
+		startTimer()
+	end
+end)
+
+teleportBtn.MouseButton1Click:Connect(teleportToSmallestServer)
+
+-- เดินไปสถานีตำรวจ
+local function walkToPoliceStation()
+	local char = player.Character or player.CharacterAdded:Wait()
+	local hum = char:WaitForChild("Humanoid")
+	local interior = workspace.Map.Tiles:WaitForChild("PoliceStationTile"):WaitForChild("PoliceStation"):WaitForChild("Interior")
+	local target = interior:GetChildren()[115]
+	if hum and target then
+		hum:MoveTo(target.Position)
+	end
+end
+
+walkBtn.MouseButton1Click:Connect(walkToPoliceStation)
+
+-- ย้ายเซิร์ฟเมื่อเกิดใหม่ หรือเลือดต่ำ
+player.CharacterAdded:Connect(function(char)
+	local hum = char:WaitForChild("Humanoid")
+
+	-- ตาย → ย้ายเซิร์ฟ
+	hum.Died:Connect(function()
+		teleportToSmallestServer()
+	end)
+
+	-- เลือด ≤ 1 → ย้ายเซิร์ฟ
+	hum.HealthChanged:Connect(function(health)
+		if health <= 1 then
+			teleportToSmallestServer()
+		end
+	end)
+end)
+
+-- เริ่มจับเวลาอัตโนมัติ
+task.delay(1, startTimer)
