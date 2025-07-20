@@ -40,7 +40,7 @@ Instance.new("UICorner", banner).CornerRadius = UDim.new(0, 12)
 local bannerText = Instance.new("TextLabel")
 bannerText.Size = UDim2.new(1, 0, 1, 0)
 bannerText.BackgroundTransparency = 1
-bannerText.Text = "AKB akibus shop v0.0.2"
+bannerText.Text = "AKB akibus shop v0.0.3"
 bannerText.TextColor3 = Color3.new(1, 1, 1)
 bannerText.Font = Enum.Font.GothamBold
 bannerText.TextSize = 20
@@ -221,7 +221,7 @@ local function setupCharacter(char)
 			teleportToSmallestServer()
 		elseif health < 30 then
 			stopTimer()
-			startTimer(1)
+			startTimer(2)
 		end
 	end)
 end
