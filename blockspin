@@ -6,7 +6,7 @@ local HttpService = game:GetService("HttpService")
 local player = Players.LocalPlayer
 local guiSaveKey = "GuiPos_" .. player.UserId
 
--- โหลดตำแหน่ง UI ที่บันทึกไว้
+-- โหลดตำแหน่ง GUI
 local guiPos = nil
 pcall(function()
 	local val = player:WaitForChild("PlayerGui"):FindFirstChild(guiSaveKey)
@@ -15,40 +15,51 @@ pcall(function()
 	end
 end)
 
--- สร้าง GUI
+-- สร้าง GUI หลัก
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "MainGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 230, 0, 210)
-frame.Position = guiPos and UDim2.new(0, guiPos.x, 0, guiPos.y) or UDim2.new(0.5, -115, 0.5, -105)
-frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+frame.Size = UDim2.new(0, 480, 0, 360)
+frame.Position = guiPos and UDim2.new(0, guiPos.x, 0, guiPos.y) or UDim2.new(0.5, -240, 0.5, -180)
+frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 frame.Active = true
 frame.Draggable = true
 frame.Parent = screenGui
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
 
--- หัว UI
+local shadow = Instance.new("ImageLabel")
+shadow.BackgroundTransparency = 1
+shadow.Image = "rbxassetid://1316045217"
+shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+shadow.ImageTransparency = 0.5
+shadow.ScaleType = Enum.ScaleType.Slice
+shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+shadow.Size = frame.Size + UDim2.new(0, 20, 0, 20)
+shadow.Position = frame.Position + UDim2.new(0, -10, 0, -10)
+shadow.ZIndex = 0
+shadow.Parent = frame
+
 local banner = Instance.new("Frame")
 banner.Size = UDim2.new(1, 0, 0.12, 0)
-banner.BackgroundColor3 = Color3.fromRGB(30, 144, 255)
+banner.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
 banner.Parent = frame
 Instance.new("UICorner", banner).CornerRadius = UDim.new(0, 12)
 
 local bannerText = Instance.new("TextLabel")
 bannerText.Size = UDim2.new(1, 0, 1, 0)
 bannerText.BackgroundTransparency = 1
-bannerText.Text = "AKB akibus shop v0.0.3"
+bannerText.Text = "✨ AKB akibus shop v0.0.4"
 bannerText.TextColor3 = Color3.new(1, 1, 1)
 bannerText.Font = Enum.Font.GothamBold
 bannerText.TextSize = 20
 bannerText.Parent = banner
 
 local label = Instance.new("TextLabel")
-label.Size = UDim2.new(1, 0, 0.2, 0)
-label.Position = UDim2.new(0, 0, 0.12, 0)
+label.Size = UDim2.new(0.5, -20, 0.1, 0)
+label.Position = UDim2.new(0, 10, 0.14, 0)
 label.BackgroundTransparency = 1
 label.Text = "📟 Auto Rejoin System"
 label.TextColor3 = Color3.new(1, 1, 1)
@@ -56,9 +67,22 @@ label.TextSize = 16
 label.Font = Enum.Font.GothamBold
 label.Parent = frame
 
+local searchBox = Instance.new("TextBox")
+searchBox.Size = UDim2.new(0.45, -10, 0.08, 0)
+searchBox.Position = UDim2.new(0.55, 10, 0.14, 0)
+searchBox.PlaceholderText = "🔍 ค้นหาผู้เล่น"
+searchBox.TextColor3 = Color3.new(1, 1, 1)
+searchBox.TextSize = 14
+searchBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+searchBox.Font = Enum.Font.Gotham
+searchBox.ClearTextOnFocus = false
+searchBox.Text = ""
+searchBox.Parent = frame
+Instance.new("UICorner", searchBox).CornerRadius = UDim.new(0, 8)
+
 local inputBox = Instance.new("TextBox")
-inputBox.Size = UDim2.new(0.8, 0, 0.15, 0)
-inputBox.Position = UDim2.new(0.1, 0, 0.37, 0)
+inputBox.Size = UDim2.new(0.5, -20, 0.1, 0)
+inputBox.Position = UDim2.new(0, 10, 0.24, 0)
 inputBox.PlaceholderText = "Time in seconds"
 inputBox.Text = "300"
 inputBox.TextColor3 = Color3.new(1, 1, 1)
@@ -70,8 +94,8 @@ inputBox.Parent = frame
 Instance.new("UICorner", inputBox).CornerRadius = UDim.new(0, 12)
 
 local runBtn = Instance.new("TextButton")
-runBtn.Size = UDim2.new(0.8, 0, 0.15, 0)
-runBtn.Position = UDim2.new(0.1, 0, 0.55, 0)
+runBtn.Size = UDim2.new(0.5, -20, 0.12, 0)
+runBtn.Position = UDim2.new(0, 10, 0.36, 0)
 runBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
 runBtn.Text = "▶ Start Timer"
 runBtn.TextColor3 = Color3.new(1, 1, 1)
@@ -81,8 +105,8 @@ runBtn.Parent = frame
 Instance.new("UICorner", runBtn).CornerRadius = UDim.new(0, 14)
 
 local teleportBtn = Instance.new("TextButton")
-teleportBtn.Size = UDim2.new(0.8, 0, 0.15, 0)
-teleportBtn.Position = UDim2.new(0.1, 0, 0.73, 0)
+teleportBtn.Size = UDim2.new(0.5, -20, 0.12, 0)
+teleportBtn.Position = UDim2.new(0, 10, 0.50, 0)
 teleportBtn.BackgroundColor3 = Color3.fromRGB(0, 128, 255)
 teleportBtn.Text = "🔁 Change Server"
 teleportBtn.TextColor3 = Color3.new(1, 1, 1)
@@ -91,18 +115,33 @@ teleportBtn.TextSize = 16
 teleportBtn.Parent = frame
 Instance.new("UICorner", teleportBtn).CornerRadius = UDim.new(0, 14)
 
-local walkBtn = Instance.new("TextButton")
-walkBtn.Size = UDim2.new(0.8, 0, 0.15, 0)
-walkBtn.Position = UDim2.new(0.1, 0, 0.91, 0)
-walkBtn.BackgroundColor3 = Color3.fromRGB(255, 140, 0)
-walkBtn.Text = "🚶 ไปสถานีตำรวจ"
-walkBtn.TextColor3 = Color3.new(1, 1, 1)
-walkBtn.Font = Enum.Font.GothamBold
-walkBtn.TextSize = 16
-walkBtn.Parent = frame
-Instance.new("UICorner", walkBtn).CornerRadius = UDim.new(0, 14)
+local playerListFrame = Instance.new("ScrollingFrame")
+playerListFrame.Size = UDim2.new(0.45, -10, 0.56, 0)
+playerListFrame.Position = UDim2.new(0.55, 10, 0.24, 0)
+playerListFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+playerListFrame.BorderSizePixel = 0
+playerListFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+playerListFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+playerListFrame.ScrollBarThickness = 6
+playerListFrame.Parent = frame
+Instance.new("UICorner", playerListFrame).CornerRadius = UDim.new(0, 10)
 
--- ปุ่มพับ UI
+local uiListLayout = Instance.new("UIListLayout")
+uiListLayout.Parent = playerListFrame
+uiListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+uiListLayout.Padding = UDim.new(0, 4)
+
+local stopFollowBtn = Instance.new("TextButton")
+stopFollowBtn.Size = UDim2.new(0.45, -10, 0.1, 0)
+stopFollowBtn.Position = UDim2.new(0.55, 10, 0.83, 0)
+stopFollowBtn.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
+stopFollowBtn.Text = "✋ หยุดติดตาม"
+stopFollowBtn.TextColor3 = Color3.new(1, 1, 1)
+stopFollowBtn.Font = Enum.Font.GothamBold
+stopFollowBtn.TextSize = 16
+stopFollowBtn.Parent = frame
+Instance.new("UICorner", stopFollowBtn).CornerRadius = UDim.new(0, 14)
+
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Size = UDim2.new(0, 30, 0, 30)
 toggleBtn.Position = UDim2.new(0, 10, 0, 10)
@@ -130,7 +169,6 @@ frame:GetPropertyChangedSignal("Position"):Connect(function()
 	saveVal.Value = HttpService:JSONEncode({ x = pos.X.Offset, y = pos.Y.Offset })
 end)
 
--- เทเลพอร์ตไปห้องเล็ก
 local function teleportToSmallestServer()
 	local success, servers = pcall(function()
 		return HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"))
@@ -145,7 +183,8 @@ local function teleportToSmallestServer()
 	end
 end
 
--- ระบบจับเวลา
+teleportBtn.MouseButton1Click:Connect(teleportToSmallestServer)
+
 local running = false
 local conn
 
@@ -195,27 +234,128 @@ runBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
-teleportBtn.MouseButton1Click:Connect(teleportToSmallestServer)
+-- ระบบเดินออโต้ติดตามผู้เล่นแบบหลบสิ่งกีดขวางง่าย ๆ
 
--- เดินไปสถานีตำรวจ
-local function walkToPoliceStation()
-	local char = player.Character or player.CharacterAdded:Wait()
-	local hum = char:WaitForChild("Humanoid")
-	local interior = workspace.Map.Tiles:WaitForChild("PoliceStationTile"):WaitForChild("PoliceStation"):WaitForChild("Interior")
-	local target = interior:GetChildren()[115]
-	if hum and target then
-		hum:MoveTo(target.Position)
+local humanoid
+local rootPart
+local currentTarget
+
+local followConnection
+
+local MOVE_STEP = 4 -- ระยะเดินทีละก้าว (studs)
+local RAY_DISTANCE = 3 -- ระยะตรวจสอบสิ่งกีดขวางข้างหน้า
+
+local function stopFollowing()
+	if followConnection then
+		followConnection:Disconnect()
+		followConnection = nil
+	end
+	if humanoid then
+		humanoid:MoveTo(rootPart.Position)
+	end
+	currentTarget = nil
+end
+
+local function isObstacleAhead(position, direction)
+	local raycastParams = RaycastParams.new()
+	raycastParams.FilterDescendantsInstances = {player.Character}
+	raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+	raycastParams.IgnoreWater = true
+
+	local raycastResult = workspace:Raycast(position, direction * RAY_DISTANCE, raycastParams)
+	return raycastResult ~= nil
+end
+
+local function followPlayer(targetPlayer)
+	stopFollowing()
+
+	if not targetPlayer or not targetPlayer.Character then return end
+
+	local myChar = player.Character or player.CharacterAdded:Wait()
+	humanoid = myChar:FindFirstChildOfClass("Humanoid")
+	rootPart = myChar:FindFirstChild("HumanoidRootPart")
+	if not humanoid or humanoid.Health <= 0 or not rootPart then return end
+
+	currentTarget = targetPlayer
+
+	followConnection = RunService.Heartbeat:Connect(function()
+		if not currentTarget or not currentTarget.Character or humanoid.Health <= 0 then
+			stopFollowing()
+			return
+		end
+
+		local targetRoot = currentTarget.Character:FindFirstChild("HumanoidRootPart")
+		if not targetRoot then
+			stopFollowing()
+			return
+		end
+
+		local direction = (targetRoot.Position - rootPart.Position).Unit
+		local distance = (targetRoot.Position - rootPart.Position).Magnitude
+
+		if distance <= 5 then
+			humanoid:MoveTo(rootPart.Position) -- หยุดเดินเมื่อเข้าใกล้เป้าหมาย
+			return
+		end
+
+		if isObstacleAhead(rootPart.Position, direction) then
+			local leftDir = rootPart.CFrame.LookVector:Cross(Vector3.new(0,1,0)).Unit
+			local rightDir = -leftDir
+
+			if not isObstacleAhead(rootPart.Position, leftDir) then
+				humanoid:MoveTo(rootPart.Position + leftDir * MOVE_STEP)
+			elseif not isObstacleAhead(rootPart.Position, rightDir) then
+				humanoid:MoveTo(rootPart.Position + rightDir * MOVE_STEP)
+			else
+				humanoid:MoveTo(rootPart.Position - direction * MOVE_STEP)
+			end
+		else
+			humanoid:MoveTo(rootPart.Position + direction * MOVE_STEP)
+		end
+	end)
+end
+
+-- อัปเดตรายชื่อผู้เล่นใน GUI
+local function updatePlayerList()
+	for _, child in ipairs(playerListFrame:GetChildren()) do
+		if child:IsA("TextButton") then
+			child:Destroy()
+		end
+	end
+
+	local searchText = searchBox.Text:lower()
+
+	for _, p in ipairs(Players:GetPlayers()) do
+		if p ~= player and p.Name:lower():find(searchText) then
+			local btn = Instance.new("TextButton")
+			btn.Size = UDim2.new(1, 0, 0, 30)
+			btn.Text = "👤 " .. p.Name
+			btn.TextColor3 = Color3.new(1, 1, 1)
+			btn.Font = Enum.Font.Gotham
+			btn.TextSize = 14
+			btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+			btn.Parent = playerListFrame
+			Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+
+			btn.MouseButton1Click:Connect(function()
+				followPlayer(p)
+			end)
+		end
 	end
 end
 
-walkBtn.MouseButton1Click:Connect(walkToPoliceStation)
+Players.PlayerAdded:Connect(updatePlayerList)
+Players.PlayerRemoving:Connect(updatePlayerList)
+searchBox:GetPropertyChangedSignal("Text"):Connect(updatePlayerList)
+updatePlayerList()
 
--- ตั้งค่าตอนเกิดใหม่
+stopFollowBtn.MouseButton1Click:Connect(stopFollowing)
+
+-- ตั้งค่าตอนเกิด
 local function setupCharacter(char)
 	local hum = char:WaitForChild("Humanoid")
 
 	hum.Died:Connect(teleportToSmallestServer)
-
 	hum.HealthChanged:Connect(function(health)
 		if health <= 1 then
 			teleportToSmallestServer()
@@ -226,12 +366,9 @@ local function setupCharacter(char)
 	end)
 end
 
-if player.Character then
-	setupCharacter(player.Character)
-end
+if player.Character then setupCharacter(player.Character) end
 player.CharacterAdded:Connect(setupCharacter)
 
--- เริ่มอัตโนมัติ
 task.delay(1, function()
 	startTimer()
 end)
