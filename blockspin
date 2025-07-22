@@ -51,7 +51,7 @@ Instance.new("UICorner", banner).CornerRadius = UDim.new(0, 12)
 local bannerText = Instance.new("TextLabel")
 bannerText.Size = UDim2.new(1, 0, 1, 0)
 bannerText.BackgroundTransparency = 1
-bannerText.Text = "✨ AKB akibus shop v0.0.4"
+bannerText.Text = "✨ AKB akibus shop v0.0.5"
 bannerText.TextColor3 = Color3.new(1, 1, 1)
 bannerText.Font = Enum.Font.GothamBold
 bannerText.TextSize = 20
@@ -152,6 +152,57 @@ toggleBtn.Font = Enum.Font.GothamBold
 toggleBtn.TextSize = 20
 toggleBtn.Parent = screenGui
 Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 8)
+
+local roomIdInput = Instance.new("TextBox")
+roomIdInput.Size = UDim2.new(0.5, -20, 0.08, 0)
+roomIdInput.Position = UDim2.new(0, 10, 0.73, 0)
+roomIdInput.PlaceholderText = "✏️ ใส่ Room ID"
+roomIdInput.TextColor3 = Color3.new(1, 1, 1)
+roomIdInput.TextSize = 14
+roomIdInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+roomIdInput.Font = Enum.Font.Gotham
+roomIdInput.ClearTextOnFocus = false
+roomIdInput.Text = ""
+roomIdInput.Parent = frame
+Instance.new("UICorner", roomIdInput).CornerRadius = UDim.new(0, 8)
+
+local roomIdLabel = Instance.new("TextButton")
+roomIdLabel.Size = UDim2.new(0.5, -20, 0.08, 0)
+roomIdLabel.Position = UDim2.new(0, 10, 0.63, 0)
+roomIdLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+roomIdLabel.TextColor3 = Color3.new(1, 1, 1)
+roomIdLabel.Font = Enum.Font.Gotham
+roomIdLabel.TextSize = 14
+roomIdLabel.Text = "Room ID: " .. tostring(game.JobId)
+roomIdLabel.TextWrapped = true
+roomIdLabel.Parent = frame
+Instance.new("UICorner", roomIdLabel).CornerRadius = UDim.new(0, 8)
+
+local joinByIdBtn = Instance.new("TextButton")
+joinByIdBtn.Size = UDim2.new(0.5, -20, 0.12, 0)
+joinByIdBtn.Position = UDim2.new(0, 10, 0.83, 0)
+joinByIdBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+joinByIdBtn.Text = "🔑 Join by Room ID"
+joinByIdBtn.TextColor3 = Color3.new(1, 1, 1)
+joinByIdBtn.Font = Enum.Font.GothamBold
+joinByIdBtn.TextSize = 16
+joinByIdBtn.Parent = frame
+Instance.new("UICorner", joinByIdBtn).CornerRadius = UDim.new(0, 14)
+
+joinByIdBtn.MouseButton1Click:Connect(function()
+	local roomId = roomIdInput.Text
+	if roomId and roomId ~= "" then
+		TeleportService:TeleportToPlaceInstance(game.PlaceId, roomId, player)
+	end
+end)
+
+roomIdLabel.MouseButton1Click:Connect(function()
+	setclipboard(game.JobId)
+	roomIdLabel.Text = "📋 Copied Room ID!"
+	task.delay(1.5, function()
+		roomIdLabel.Text = "Room ID: " .. tostring(game.JobId)
+	end)
+end)
 
 toggleBtn.MouseButton1Click:Connect(function()
 	frame.Visible = not frame.Visible
