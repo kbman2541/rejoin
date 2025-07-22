@@ -5,6 +5,7 @@ local HttpService = game:GetService("HttpService")
 
 local player = Players.LocalPlayer
 local guiSaveKey = "GuiPos_" .. player.UserId
+local TELEPORT_DISTANCE = 8
 
 -- โหลดตำแหน่ง GUI
 local guiPos = nil
@@ -343,40 +344,48 @@ local function followPlayer(targetPlayer)
 	local moveTimer = 0
 
 	followConnection = RunService.Heartbeat:Connect(function(dt)
-		moveTimer += dt
-		if moveTimer < STEP_DELAY then return end
-		moveTimer = 0
+	moveTimer += dt
+	if moveTimer < STEP_DELAY then return end
+	moveTimer = 0
 
-		if not currentTarget or not currentTarget.Character or humanoid.Health <= 0 then
-			stopFollowing()
-			return
-		end
+	if not currentTarget or not currentTarget.Character or humanoid.Health <= 0 then
+		stopFollowing()
+		return
+	end
 
-		local targetRoot = currentTarget.Character:FindFirstChild("HumanoidRootPart")
-		if not targetRoot then
-			stopFollowing()
-			return
-		end
+    	local targetRoot = currentTarget.Character:FindFirstChild("HumanoidRootPart")
+    	if not targetRoot then
+	    	stopFollowing()
+	    	return
+	    end
 
-		local directionVector = (targetRoot.Position - rootPart.Position)
-		local distance = directionVector.Magnitude
+    	local directionVector = (targetRoot.Position - rootPart.Position)
+    	local distance = directionVector.Magnitude
 
-		if distance <= 5 then
-			return -- หยุดเมื่อใกล้พอ
-		end
+    if distance <= 5 then
+        return -- หยุดเมื่อใกล้พอ
+    end
 
-		local direction = directionVector.Unit
+    if distance <= TELEPORT_DISTANCE then
+	    -- ถ้าอยู่สูงกว่าผู้เล่นมาก (เช่น บนหลังคา), ให้วาร์ปลง
+    	if rootPart.Position.Y - targetRoot.Position.Y > 20 then
+    		rootPart.CFrame = CFrame.new(targetRoot.Position + Vector3.new(0, 4, 0))
+    	else
+	    	-- วาร์ปแนวนอนตามปกติ
+	    	rootPart.CFrame = CFrame.new(targetRoot.Position + Vector3.new(0, 5, 0))
+	    end
+	    return
+    end
+	local direction = directionVector.Unit
 
-		if isObstacleAhead(rootPart.Position, direction) then
-			-- มีสิ่งกีดขวาง -> ลอยขึ้น
-			local climbPosition = rootPart.Position + Vector3.new(0, CLIMB_HEIGHT, 0)
-			rootPart.CFrame = CFrame.new(climbPosition, targetRoot.Position)
-		else
-			-- ลอยไปข้างหน้า
-			local newPosition = rootPart.Position + direction * MOVE_STEP
-			rootPart.CFrame = CFrame.new(newPosition, targetRoot.Position)
-		end
-	end)
+	    if isObstacleAhead(rootPart.Position, direction) then
+	    	local climbPosition = rootPart.Position + Vector3.new(0, CLIMB_HEIGHT, 0)
+	    	rootPart.CFrame = CFrame.new(climbPosition, targetRoot.Position)
+    	else
+	    	local newPosition = rootPart.Position + direction * MOVE_STEP
+	    	rootPart.CFrame = CFrame.new(newPosition, targetRoot.Position)
+	    end
+    end)
 end
 
 
