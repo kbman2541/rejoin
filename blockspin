@@ -329,7 +329,7 @@ end
 
 local MOVE_STEP = 3
 local STEP_DELAY = 0.2
-local CLIMB_HEIGHT = 20
+local CLIMB_HEIGHT = 30
 
 local function followPlayer(targetPlayer)
 	stopFollowing()
