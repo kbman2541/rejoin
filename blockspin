@@ -293,8 +293,10 @@ local currentTarget
 
 local followConnection
 
-local MOVE_STEP = 4 -- ระยะเดินทีละก้าว (studs)
+local MOVE_STEP = 3 -- ระยะเดินทีละก้าว (studs)
 local RAY_DISTANCE = 3 -- ระยะตรวจสอบสิ่งกีดขวางข้างหน้า
+local STEP_DELAY = 0.2
+local CLIMB_HEIGHT = 30
 
 local function stopFollowing()
 	if followConnection then
@@ -326,10 +328,6 @@ local function isObstacleAhead(position, direction)
 	local raycastResult = workspace:Raycast(position, direction * MOVE_STEP, raycastParams)
 	return raycastResult ~= nil
 end
-
-local MOVE_STEP = 3
-local STEP_DELAY = 0.2
-local CLIMB_HEIGHT = 30
 
 local function followPlayer(targetPlayer)
 	stopFollowing()
