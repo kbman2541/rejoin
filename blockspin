@@ -266,6 +266,20 @@ local function isObstacleAhead(position, direction)
 	return raycastResult ~= nil
 end
 
+local function isObstacleAhead(position, direction)
+	local raycastParams = RaycastParams.new()
+	raycastParams.FilterDescendantsInstances = {player.Character}
+	raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+	raycastParams.IgnoreWater = true
+
+	local raycastResult = workspace:Raycast(position, direction * MOVE_STEP, raycastParams)
+	return raycastResult ~= nil
+end
+
+local MOVE_STEP = 3
+local STEP_DELAY = 0.2
+local CLIMB_HEIGHT = 20
+
 local function followPlayer(targetPlayer)
 	stopFollowing()
 
@@ -277,8 +291,13 @@ local function followPlayer(targetPlayer)
 	if not humanoid or humanoid.Health <= 0 or not rootPart then return end
 
 	currentTarget = targetPlayer
+	local moveTimer = 0
 
-	followConnection = RunService.Heartbeat:Connect(function()
+	followConnection = RunService.Heartbeat:Connect(function(dt)
+		moveTimer += dt
+		if moveTimer < STEP_DELAY then return end
+		moveTimer = 0
+
 		if not currentTarget or not currentTarget.Character or humanoid.Health <= 0 then
 			stopFollowing()
 			return
@@ -290,30 +309,27 @@ local function followPlayer(targetPlayer)
 			return
 		end
 
-		local direction = (targetRoot.Position - rootPart.Position).Unit
-		local distance = (targetRoot.Position - rootPart.Position).Magnitude
+		local directionVector = (targetRoot.Position - rootPart.Position)
+		local distance = directionVector.Magnitude
 
 		if distance <= 5 then
-			humanoid:MoveTo(rootPart.Position) -- หยุดเดินเมื่อเข้าใกล้เป้าหมาย
-			return
+			return -- หยุดเมื่อใกล้พอ
 		end
 
-		if isObstacleAhead(rootPart.Position, direction) then
-			local leftDir = rootPart.CFrame.LookVector:Cross(Vector3.new(0,1,0)).Unit
-			local rightDir = -leftDir
+		local direction = directionVector.Unit
 
-			if not isObstacleAhead(rootPart.Position, leftDir) then
-				humanoid:MoveTo(rootPart.Position + leftDir * MOVE_STEP)
-			elseif not isObstacleAhead(rootPart.Position, rightDir) then
-				humanoid:MoveTo(rootPart.Position + rightDir * MOVE_STEP)
-			else
-				humanoid:MoveTo(rootPart.Position - direction * MOVE_STEP)
-			end
+		if isObstacleAhead(rootPart.Position, direction) then
+			-- มีสิ่งกีดขวาง -> ลอยขึ้น
+			local climbPosition = rootPart.Position + Vector3.new(0, CLIMB_HEIGHT, 0)
+			rootPart.CFrame = CFrame.new(climbPosition, targetRoot.Position)
 		else
-			humanoid:MoveTo(rootPart.Position + direction * MOVE_STEP)
+			-- ลอยไปข้างหน้า
+			local newPosition = rootPart.Position + direction * MOVE_STEP
+			rootPart.CFrame = CFrame.new(newPosition, targetRoot.Position)
 		end
 	end)
 end
+
 
 -- อัปเดตรายชื่อผู้เล่นใน GUI
 local function updatePlayerList()
