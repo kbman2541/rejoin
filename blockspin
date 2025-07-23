@@ -52,7 +52,7 @@ Instance.new("UICorner", banner).CornerRadius = UDim.new(0, 12)
 local bannerText = Instance.new("TextLabel")
 bannerText.Size = UDim2.new(1, 0, 1, 0)
 bannerText.BackgroundTransparency = 1
-bannerText.Text = "✨ AKB akibus shop v0.0.5"
+bannerText.Text = "✨ AKB akibus shop v0.6"
 bannerText.TextColor3 = Color3.new(1, 1, 1)
 bannerText.Font = Enum.Font.GothamBold
 bannerText.TextSize = 20
@@ -446,3 +446,74 @@ player.CharacterAdded:Connect(setupCharacter)
 task.delay(1, function()
 	startTimer()
 end)
+
+local MAX_DISTANCE = 1000
+
+local function createHighlightESP(targetPlayer)
+	if targetPlayer == Players.LocalPlayer then return end
+
+	local function addHighlight(char)
+		if not char:FindFirstChild("FullBodyHighlight") then
+			local highlight = Instance.new("Highlight")
+			highlight.Name = "FullBodyHighlight"
+			highlight.FillColor = Color3.fromRGB(255, 0, 0)
+			highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+			highlight.FillTransparency = 0.3
+			highlight.OutlineTransparency = 0
+			highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+			highlight.Adornee = char
+			highlight.Parent = char
+
+			-- Optional: เพิ่ม BillboardGui เพื่อเห็นชื่อชัดขึ้น
+			if not char:FindFirstChild("ESPName") then
+				local bb = Instance.new("BillboardGui")
+				bb.Name = "ESPName"
+				bb.Adornee = char:FindFirstChild("HumanoidRootPart")
+				bb.AlwaysOnTop = true
+				bb.Size = UDim2.new(0, 100, 0, 20)
+				bb.StudsOffset = Vector3.new(0, 3, 0)
+				bb.MaxDistance = MAX_DISTANCE
+				bb.Parent = char
+
+				local name = Instance.new("TextLabel")
+				name.Size = UDim2.new(1, 0, 1, 0)
+				name.BackgroundTransparency = 1
+				name.Text = "🔴 " .. targetPlayer.Name
+				name.TextColor3 = Color3.fromRGB(255, 0, 0)
+				name.TextScaled = true
+				name.Font = Enum.Font.GothamBold
+				name.Parent = bb
+			end
+		end
+	end
+
+	local function updateVisibilityLoop(char)
+		local highlight = char:FindFirstChild("FullBodyHighlight")
+		if not highlight then return end
+
+		RunService.RenderStepped:Connect(function()
+			local root = char:FindFirstChild("HumanoidRootPart")
+			if not root then return end
+
+			local distance = (root.Position - workspace.CurrentCamera.CFrame.Position).Magnitude
+			highlight.Enabled = distance <= MAX_DISTANCE
+		end)
+	end
+
+	if targetPlayer.Character then
+		addHighlight(targetPlayer.Character)
+		updateVisibilityLoop(targetPlayer.Character)
+	end
+
+	targetPlayer.CharacterAdded:Connect(function(char)
+		repeat task.wait() until char:FindFirstChild("HumanoidRootPart")
+		addHighlight(char)
+		updateVisibilityLoop(char)
+	end)
+end
+
+-- เรียกใช้กับผู้เล่นทั้งหมด
+for _, plr in ipairs(Players:GetPlayers()) do
+	createHighlightESP(plr)
+end
+Players.PlayerAdded:Connect(createHighlightESP)
