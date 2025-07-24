@@ -52,7 +52,7 @@ Instance.new("UICorner", banner).CornerRadius = UDim.new(0, 12)
 local bannerText = Instance.new("TextLabel")
 bannerText.Size = UDim2.new(1, 0, 1, 0)
 bannerText.BackgroundTransparency = 1
-bannerText.Text = "✨ AKB akibus shop v0.6"
+bannerText.Text = "✨ AKB akibus shop v0.7"
 bannerText.TextColor3 = Color3.new(1, 1, 1)
 bannerText.Font = Enum.Font.GothamBold
 bannerText.TextSize = 20
@@ -265,11 +265,11 @@ RunService.Heartbeat:Connect(function()
 	end
 	lastPosition = currentPos
 
-	local timeLeft = 10 - (os.clock() - lastMoveTime)
+	local timeLeft = 20 - (os.clock() - lastMoveTime)
 	afkTimerLabel.Text = "🕒 Time left: " .. math.max(0, math.floor(timeLeft)) .. "s"
 
-	if os.clock() - lastMoveTime >= 10 then
-		-- ถ้าไม่ขยับ 10 วิ ให้ย้ายเซิร์ฟ
+	if os.clock() - lastMoveTime >= 20 then
+		-- ถ้าไม่ขยับ 20 วิ ให้ย้ายเซิร์ฟ
 		lastMoveTime = os.clock() + 999 -- กันวนซ้ำ
 		teleportToSmallestServer()
 	end
