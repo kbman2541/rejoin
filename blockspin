@@ -418,19 +418,15 @@ local function setupCharacter(char)
 	local hum = char:WaitForChild("Humanoid")
 
 	hum.Died:Connect(teleportToSmallestServer)
-hum.HealthChanged:Connect(function(health)
-	if health <= 1 then
-		teleportToSmallestServer()
-	elseif health < 30 then
-		task.delay(2, function()
-			-- ยืนยันว่ายังไม่ตายก่อนเทเลพอร์ต
-			if hum.Health > 0 then
-				teleportToSmallestServer()
-			end
-		end)
-	end
-end)
-
+	hum.HealthChanged:Connect(function(health)
+		if health <= 1 then
+			teleportToSmallestServer()
+		elseif health < 30 then
+			stopTimer()
+			startTimer(2)
+		end
+	end)
+end
 
 if player.Character then setupCharacter(player.Character) end
 player.CharacterAdded:Connect(setupCharacter)
