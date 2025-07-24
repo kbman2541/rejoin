@@ -431,10 +431,6 @@ end
 if player.Character then setupCharacter(player.Character) end
 player.CharacterAdded:Connect(setupCharacter)
 
-task.delay(1, function()
-	startTimer()
-end)
-
 local MAX_DISTANCE = 1000
 
 local function createHighlightESP(targetPlayer)
