@@ -81,29 +81,33 @@ searchBox.Text = ""
 searchBox.Parent = frame
 Instance.new("UICorner", searchBox).CornerRadius = UDim.new(0, 8)
 
-local inputBox = Instance.new("TextBox")
-inputBox.Size = UDim2.new(0.5, -20, 0.1, 0)
-inputBox.Position = UDim2.new(0, 10, 0.24, 0)
-inputBox.PlaceholderText = "Time in seconds"
-inputBox.Text = "900"
-inputBox.TextColor3 = Color3.new(1, 1, 1)
-inputBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-inputBox.ClearTextOnFocus = false
-inputBox.Font = Enum.Font.Gotham
-inputBox.TextSize = 16
-inputBox.Parent = frame
-Instance.new("UICorner", inputBox).CornerRadius = UDim.new(0, 12)
+local afkDetectToggle = true -- เปิดไว้โดยเริ่มต้น
+local afkBtn = Instance.new("TextButton")
+afkBtn.Size = UDim2.new(0.5, -20, 0.12, 0)
+afkBtn.Position = UDim2.new(0, 10, 0.24, 0)
+afkBtn.BackgroundColor3 = Color3.fromRGB(255, 170, 0)
+afkBtn.TextColor3 = Color3.new(1, 1, 1)
+afkBtn.Font = Enum.Font.GothamBold
+afkBtn.TextSize = 16
+afkBtn.Text = "🟢 AFK Detect: ON"
+afkBtn.Parent = frame
+Instance.new("UICorner", afkBtn).CornerRadius = UDim.new(0, 14)
 
-local runBtn = Instance.new("TextButton")
-runBtn.Size = UDim2.new(0.5, -20, 0.12, 0)
-runBtn.Position = UDim2.new(0, 10, 0.36, 0)
-runBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
-runBtn.Text = "▶ Start Timer"
-runBtn.TextColor3 = Color3.new(1, 1, 1)
-runBtn.Font = Enum.Font.GothamBold
-runBtn.TextSize = 16
-runBtn.Parent = frame
-Instance.new("UICorner", runBtn).CornerRadius = UDim.new(0, 14)
+local afkTimerLabel = Instance.new("TextLabel")
+afkTimerLabel.Size = UDim2.new(0.5, -20, 0.08, 0)
+afkTimerLabel.Position = UDim2.new(0, 10, 0.37, 0) -- อยู่ใต้ปุ่ม AFK
+afkTimerLabel.BackgroundTransparency = 1
+afkTimerLabel.Text = "🕒 Time left: ∞"
+afkTimerLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+afkTimerLabel.TextSize = 14
+afkTimerLabel.Font = Enum.Font.Gotham
+afkTimerLabel.TextXAlignment = Enum.TextXAlignment.Left
+afkTimerLabel.Parent = frame
+
+afkBtn.MouseButton1Click:Connect(function()
+	afkDetectToggle = not afkDetectToggle
+	afkBtn.Text = afkDetectToggle and "🟢 AFK Detect: ON" or "🔴 AFK Detect: OFF"
+end)
 
 local teleportBtn = Instance.new("TextButton")
 teleportBtn.Size = UDim2.new(0.5, -20, 0.12, 0)
@@ -246,46 +250,30 @@ local function formatTime(t)
 	return string.format("%02d:%02d", m, s)
 end
 
-local function stopTimer()
-	if conn then conn:Disconnect() end
-	running = false
-	label.Text = "📟 Auto Rejoin System"
-	runBtn.Text = "▶ Start Timer"
-	runBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
-end
+local lastPosition = nil
+local lastMoveTime = os.clock()
 
-local function startTimer(duration)
-	if running then return end
-	local seconds = duration or tonumber(inputBox.Text)
-	if not seconds then return end
+RunService.Heartbeat:Connect(function()
+	if not afkDetectToggle then return end
+	if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
 
-	running = true
-	local finish = os.clock() + seconds
-
-	conn = RunService.Heartbeat:Connect(function()
-		local timeLeft = math.max(0, finish - os.clock())
-		label.Text = "⏳ " .. formatTime(timeLeft)
-		if timeLeft <= 0 then
-			conn:Disconnect()
-			running = false
-			teleportToSmallestServer()
-			runBtn.Text = "▶ Start Timer"
-			runBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+	local currentPos = player.Character.HumanoidRootPart.Position
+	if lastPosition then
+		if (currentPos - lastPosition).magnitude > 0.1 then
+			lastMoveTime = os.clock()
 		end
-	end)
+	end
+	lastPosition = currentPos
 
-	runBtn.Text = "■ Stop Timer"
-	runBtn.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
-end
+	local timeLeft = 10 - (os.clock() - lastMoveTime)
+	afkTimerLabel.Text = "🕒 Time left: " .. math.max(0, math.floor(timeLeft)) .. "s"
 
-runBtn.MouseButton1Click:Connect(function()
-	if running then
-		stopTimer()
-	else
-		startTimer()
+	if os.clock() - lastMoveTime >= 10 then
+		-- ถ้าไม่ขยับ 10 วิ ให้ย้ายเซิร์ฟ
+		lastMoveTime = os.clock() + 999 -- กันวนซ้ำ
+		teleportToSmallestServer()
 	end
 end)
-
 -- ระบบเดินออโต้ติดตามผู้เล่นแบบหลบสิ่งกีดขวางง่าย ๆ
 
 local humanoid
