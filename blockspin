@@ -226,17 +226,28 @@ frame:GetPropertyChangedSignal("Position"):Connect(function()
 end)
 
 local function teleportToSmallestServer()
-	local success, servers = pcall(function()
-		return HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"))
-	end)
-	if success and servers and servers.data then
-		for _, s in ipairs(servers.data) do
-			if s.playing < s.maxPlayers then
-				TeleportService:TeleportToPlaceInstance(game.PlaceId, s.id, player)
-				break
-			end
-		end
-	end
+    local success, servers = pcall(function()
+        return HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"))
+    end)
+
+    if success and servers and servers.data then
+        local smallestServer = nil
+        for _, s in ipairs(servers.data) do
+            if s.playing < s.maxPlayers then
+                if not smallestServer or s.playing < smallestServer.playing then
+                    smallestServer = s
+                end
+            end
+        end
+
+        if smallestServer then
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, smallestServer.id, player)
+        else
+            TeleportService:Teleport(game.PlaceId, player)
+        end
+    else
+        TeleportService:Teleport(game.PlaceId, player)
+    end
 end
 
 teleportBtn.MouseButton1Click:Connect(teleportToSmallestServer)
@@ -254,34 +265,41 @@ local lastPosition = nil
 local lastMoveTime = os.clock()
 local isAFK = false  -- เพิ่มตัวแปรเพื่อตรวจสอบว่าเป็น AFK หรือไม่
 
+local countdownTime = 20  -- จำนวนเวลานับถอยหลัง 20 วินาที
+local countdownStarted = false  -- ตัวแปรเพื่อตรวจสอบว่าเริ่มนับถอยหลังแล้วหรือยัง
+local countdownLabel = afkTimerLabel  -- ตัวแปรของ Label สำหรับการแสดงเวลานับถอยหลัง
+
 RunService.Heartbeat:Connect(function()
-	if not afkDetectToggle then return end
-	if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
+    if not afkDetectToggle then return end  -- ถ้าปิดการตรวจจับ AFK ให้หยุดการทำงานนี้
+    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
 
-	local currentPos = player.Character.HumanoidRootPart.Position
-	if lastPosition then
-		if (currentPos - lastPosition).magnitude > 0.1 then
-			lastMoveTime = os.clock()  -- รีเซ็ตเวลาเมื่อผู้เล่นขยับ
-			isAFK = false  -- ผู้เล่นไม่ AFK แล้ว
-		end
-	end
-	lastPosition = currentPos
+    local currentPos = player.Character.HumanoidRootPart.Position
+    if lastPosition then
+        if (currentPos - lastPosition).magnitude > 0.1 then
+            lastMoveTime = os.clock()  -- รีเซ็ตเวลาเมื่อผู้เล่นขยับ
+            isAFK = false  -- ผู้เล่นไม่ AFK แล้ว
+            countdownStarted = false  -- รีเซ็ตการเริ่มนับถอยหลัง
+        end
+    end
+    lastPosition = currentPos
 
-	local timeLeft = 20 - (os.clock() - lastMoveTime)
-	afkTimerLabel.Text = "🕒 Time left: " .. math.max(0, math.floor(timeLeft)) .. "s"
+    local timeLeft = countdownTime - (os.clock() - lastMoveTime)
+    countdownLabel.Text = "🕒 Time left: " .. math.max(0, math.floor(timeLeft)) .. "s"
 
-	-- ถ้าผ่าน 20 วินาทีแล้วไม่มีการขยับ
-	if os.clock() - lastMoveTime >= 20 then
-		if not isAFK then
-			isAFK = true  -- ตั้งสถานะเป็น AFK
-			lastMoveTime = os.clock() + 999 -- กันวนซ้ำ
-			teleportToSmallestServer()  -- ย้ายเซิร์ฟเวอร์
-		else
-			-- หากผู้เล่นไม่ได้ขยับใหม่ในช่วง 20 วินาทีที่ผ่านมา ให้เริ่มนับเวลาใหม่
-			lastMoveTime = os.clock()  -- รีเซ็ตเวลาเริ่มนับใหม่
-		end
-	end
+    -- ถ้าผ่าน 20 วินาทีแล้วไม่มีการขยับ
+    if os.clock() - lastMoveTime >= countdownTime then
+        if not isAFK then
+            isAFK = true  -- ตั้งสถานะเป็น AFK
+            countdownStarted = true  -- เริ่มการนับถอยหลัง
+            lastMoveTime = os.clock() + 999  -- กันวนซ้ำ
+            teleportToSmallestServer()  -- ย้ายเซิร์ฟเวอร์
+        else
+            -- หากผู้เล่นไม่ได้ขยับใหม่ในช่วง 20 วินาทีที่ผ่านมา ให้เริ่มนับเวลาใหม่
+            lastMoveTime = os.clock()  -- รีเซ็ตเวลาเริ่มนับใหม่
+        end
+    end
 end)
+
 
 -- ระบบเดินออโต้ติดตามผู้เล่นแบบหลบสิ่งกีดขวางง่าย ๆ
 
@@ -314,16 +332,6 @@ local function isObstacleAhead(position, direction)
 	raycastParams.IgnoreWater = true
 
 	local raycastResult = workspace:Raycast(position, direction * RAY_DISTANCE, raycastParams)
-	return raycastResult ~= nil
-end
-
-local function isObstacleAhead(position, direction)
-	local raycastParams = RaycastParams.new()
-	raycastParams.FilterDescendantsInstances = {player.Character}
-	raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
-	raycastParams.IgnoreWater = true
-
-	local raycastResult = workspace:Raycast(position, direction * MOVE_STEP, raycastParams)
 	return raycastResult ~= nil
 end
 
@@ -424,17 +432,21 @@ stopFollowBtn.MouseButton1Click:Connect(stopFollowing)
 
 -- ตั้งค่าตอนเกิด
 local function setupCharacter(char)
-	local hum = char:WaitForChild("Humanoid")
+    local hum = char:WaitForChild("Humanoid")
+    hum.Died:Connect(teleportToSmallestServer)
+    hum.HealthChanged:Connect(function(health)
+        if health <= 1 then
+            teleportToSmallestServer()
+        elseif health < 30 then
+            stopTimer()
+            startTimer(2)
+        end
+    end)
 
-	hum.Died:Connect(teleportToSmallestServer)
-	hum.HealthChanged:Connect(function(health)
-		if health <= 1 then
-			teleportToSmallestServer()
-		elseif health < 30 then
-			stopTimer()
-			startTimer(2)
-		end
-	end)
+    -- ตรวจสอบว่า char มี HumanoidRootPart หรือไม่
+    if not char:FindFirstChild("HumanoidRootPart") then
+        return -- หยุดหากไม่มี HumanoidRootPart
+    end
 end
 
 if player.Character then setupCharacter(player.Character) end
