@@ -252,6 +252,7 @@ end
 
 local lastPosition = nil
 local lastMoveTime = os.clock()
+local isAFK = false  -- เพิ่มตัวแปรเพื่อตรวจสอบว่าเป็น AFK หรือไม่
 
 RunService.Heartbeat:Connect(function()
 	if not afkDetectToggle then return end
@@ -260,7 +261,8 @@ RunService.Heartbeat:Connect(function()
 	local currentPos = player.Character.HumanoidRootPart.Position
 	if lastPosition then
 		if (currentPos - lastPosition).magnitude > 0.1 then
-			lastMoveTime = os.clock()
+			lastMoveTime = os.clock()  -- รีเซ็ตเวลาเมื่อผู้เล่นขยับ
+			isAFK = false  -- ผู้เล่นไม่ AFK แล้ว
 		end
 	end
 	lastPosition = currentPos
@@ -268,12 +270,19 @@ RunService.Heartbeat:Connect(function()
 	local timeLeft = 20 - (os.clock() - lastMoveTime)
 	afkTimerLabel.Text = "🕒 Time left: " .. math.max(0, math.floor(timeLeft)) .. "s"
 
+	-- ถ้าผ่าน 20 วินาทีแล้วไม่มีการขยับ
 	if os.clock() - lastMoveTime >= 20 then
-		-- ถ้าไม่ขยับ 20 วิ ให้ย้ายเซิร์ฟ
-		lastMoveTime = os.clock() + 999 -- กันวนซ้ำ
-		teleportToSmallestServer()
+		if not isAFK then
+			isAFK = true  -- ตั้งสถานะเป็น AFK
+			lastMoveTime = os.clock() + 999 -- กันวนซ้ำ
+			teleportToSmallestServer()  -- ย้ายเซิร์ฟเวอร์
+		else
+			-- หากผู้เล่นไม่ได้ขยับใหม่ในช่วง 20 วินาทีที่ผ่านมา ให้เริ่มนับเวลาใหม่
+			lastMoveTime = os.clock()  -- รีเซ็ตเวลาเริ่มนับใหม่
+		end
 	end
 end)
+
 -- ระบบเดินออโต้ติดตามผู้เล่นแบบหลบสิ่งกีดขวางง่าย ๆ
 
 local humanoid
