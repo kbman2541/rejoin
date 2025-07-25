@@ -179,6 +179,30 @@ roomIdLabel.TextWrapped = true
 roomIdLabel.Parent = frame
 Instance.new("UICorner", roomIdLabel).CornerRadius = UDim.new(0, 8)
 
+local afkToggleBtn = Instance.new("TextButton")
+afkToggleBtn.Size = UDim2.new(0, 140, 0, 30)
+afkToggleBtn.Position = UDim2.new(0, 10, 0.5, -15)
+afkToggleBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+afkToggleBtn.TextColor3 = Color3.new(1, 1, 1)
+afkToggleBtn.Text = "🛑 Auto Rejoin: OFF"
+afkToggleBtn.Font = Enum.Font.GothamBold
+afkToggleBtn.TextSize = 14
+afkToggleBtn.Parent = screenGui
+Instance.new("UICorner", afkToggleBtn).CornerRadius = UDim.new(0, 8)
+afkToggleBtn.Text = "✅ Auto Rejoin: ON"
+afkToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+
+local afkTimerLabel = Instance.new("TextLabel")
+afkTimerLabel.Size = UDim2.new(0, 140, 0, 20)
+afkTimerLabel.Position = UDim2.new(0, 10, 0.5, 20) -- ด้านล่างปุ่ม
+afkTimerLabel.BackgroundTransparency = 1
+afkTimerLabel.TextColor3 = Color3.new(1, 1, 1)
+afkTimerLabel.Text = "⏱ AFK Timer: --"
+afkTimerLabel.Font = Enum.Font.Gotham
+afkTimerLabel.TextSize = 14
+afkTimerLabel.TextWrapped = true
+afkTimerLabel.Parent = screenGui
+
 local joinByIdBtn = Instance.new("TextButton")
 joinByIdBtn.Size = UDim2.new(0.5, -20, 0.12, 0)
 joinByIdBtn.Position = UDim2.new(0, 10, 0.83, 0)
@@ -441,13 +465,55 @@ local function setupCharacter(char)
 end
 
 if player.Character then setupCharacter(player.Character) end
-player.CharacterAdded:Connect(setupCharacter)
+player.CharacterAdded:Connect(function(char)
+	setupCharacter(char)
+	afkTime = 0
+	lastPosition = nil
+end)
 
 task.delay(1, function()
 	startTimer()
 end)
 
 local MAX_DISTANCE = 1000
+
+local AFK_ENABLED = true
+local lastPosition = nil
+local afkTime = 0
+local AFK_TIMEOUT = 60  -- 1 นาที
+
+afkToggleBtn.MouseButton1Click:Connect(function()
+	AFK_ENABLED = not AFK_ENABLED
+	afkToggleBtn.Text = AFK_ENABLED and "✅ Auto Rejoin: ON" or "🛑 Auto Rejoin: OFF"
+	afkToggleBtn.BackgroundColor3 = AFK_ENABLED and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(80, 80, 80)
+end)
+
+RunService.Heartbeat:Connect(function(dt)
+	if not AFK_ENABLED then
+		afkTimerLabel.Text = "⏱ AFK Timer: --"
+		return
+	end
+
+	if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
+
+	local currentPos = player.Character.HumanoidRootPart.Position
+	if lastPosition and (currentPos - lastPosition).Magnitude < 0.1 then
+		afkTime += dt
+		local remain = math.max(0, AFK_TIMEOUT - afkTime)
+		afkTimerLabel.Text = "⏱ AFK Timer: " .. string.format("%.0f", remain) .. "s"
+
+		if afkTime >= AFK_TIMEOUT then
+			teleportToSmallestServer()
+			afkTime = 0
+			afkTimerLabel.Text = "🔄 Changing Server..."
+		end
+	else
+		afkTime = 0
+		afkTimerLabel.Text = "⏱ AFK Timer: " .. AFK_TIMEOUT .. "s"
+	end
+
+	lastPosition = currentPos
+end)
 
 local function createHighlightESP(targetPlayer)
 	if targetPlayer == Players.LocalPlayer then return end
