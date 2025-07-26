@@ -2,6 +2,7 @@ local Players = game:GetService("Players")
 local TeleportService = game:GetService("TeleportService")
 local RunService = game:GetService("RunService")
 local HttpService = game:GetService("HttpService")
+local PathfindingService = game:GetService("PathfindingService") -- เพิ่ม Service สำหรับคำนวณเส้นทาง
 
 local player = Players.LocalPlayer
 local guiSaveKey = "GuiPos_" .. player.UserId
@@ -52,7 +53,7 @@ Instance.new("UICorner", banner).CornerRadius = UDim.new(0, 12)
 local bannerText = Instance.new("TextLabel")
 bannerText.Size = UDim2.new(1, 0, 1, 0)
 bannerText.BackgroundTransparency = 1
-bannerText.Text = "✨ AKB akibus shop v0.7"
+bannerText.Text = "✨ AKB akibus shop v0.8" -- Update version
 bannerText.TextColor3 = Color3.new(1, 1, 1)
 bannerText.Font = Enum.Font.GothamBold
 bannerText.TextSize = 20
@@ -132,17 +133,6 @@ uiListLayout.Parent = playerListFrame
 uiListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 uiListLayout.Padding = UDim.new(0, 4)
 
-local stopFollowBtn = Instance.new("TextButton")
-stopFollowBtn.Size = UDim2.new(0.45, -10, 0.1, 0)
-stopFollowBtn.Position = UDim2.new(0.55, 10, 0.83, 0)
-stopFollowBtn.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
-stopFollowBtn.Text = "✋ หยุดติดตาม"
-stopFollowBtn.TextColor3 = Color3.new(1, 1, 1)
-stopFollowBtn.Font = Enum.Font.GothamBold
-stopFollowBtn.TextSize = 16
-stopFollowBtn.Parent = frame
-Instance.new("UICorner", stopFollowBtn).CornerRadius = UDim.new(0, 14)
-
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Size = UDim2.new(0, 30, 0, 30)
 toggleBtn.Position = UDim2.new(0, 10, 0, 10)
@@ -182,19 +172,17 @@ Instance.new("UICorner", roomIdLabel).CornerRadius = UDim.new(0, 8)
 local afkToggleBtn = Instance.new("TextButton")
 afkToggleBtn.Size = UDim2.new(0, 140, 0, 30)
 afkToggleBtn.Position = UDim2.new(0, 10, 0.5, -15)
-afkToggleBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+afkToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
 afkToggleBtn.TextColor3 = Color3.new(1, 1, 1)
-afkToggleBtn.Text = "🛑 Auto Rejoin: OFF"
+afkToggleBtn.Text = "✅ Auto Rejoin: ON"
 afkToggleBtn.Font = Enum.Font.GothamBold
 afkToggleBtn.TextSize = 14
 afkToggleBtn.Parent = screenGui
 Instance.new("UICorner", afkToggleBtn).CornerRadius = UDim.new(0, 8)
-afkToggleBtn.Text = "✅ Auto Rejoin: ON"
-afkToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
 
 local afkTimerLabel = Instance.new("TextLabel")
 afkTimerLabel.Size = UDim2.new(0, 140, 0, 20)
-afkTimerLabel.Position = UDim2.new(0, 10, 0.5, 20) -- ด้านล่างปุ่ม
+afkTimerLabel.Position = UDim2.new(0, 10, 0.5, 20)
 afkTimerLabel.BackgroundTransparency = 1
 afkTimerLabel.TextColor3 = Color3.new(1, 1, 1)
 afkTimerLabel.Text = "⏱ AFK Timer: --"
@@ -202,6 +190,18 @@ afkTimerLabel.Font = Enum.Font.Gotham
 afkTimerLabel.TextSize = 14
 afkTimerLabel.TextWrapped = true
 afkTimerLabel.Parent = screenGui
+
+local followToggleBtn = Instance.new("TextButton")
+followToggleBtn.Name = "FollowToggleButton"
+followToggleBtn.Size = UDim2.new(0, 140, 0, 30)
+followToggleBtn.Position = UDim2.new(0, 10, 0.5, 45)
+followToggleBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+followToggleBtn.Text = "👥 เลือกเป้าหมาย"
+followToggleBtn.TextColor3 = Color3.new(1, 1, 1)
+followToggleBtn.Font = Enum.Font.GothamBold
+followToggleBtn.TextSize = 14
+followToggleBtn.Parent = screenGui
+Instance.new("UICorner", followToggleBtn).CornerRadius = UDim.new(0, 8)
 
 local joinByIdBtn = Instance.new("TextButton")
 joinByIdBtn.Size = UDim2.new(0.5, -20, 0.12, 0)
@@ -245,30 +245,20 @@ frame:GetPropertyChangedSignal("Position"):Connect(function()
 	saveVal.Value = HttpService:JSONEncode({ x = pos.X.Offset, y = pos.Y.Offset })
 end)
 
--- ฟังก์ชันใหม่สำหรับย้ายเซิร์ฟเวอร์ (นำไปแทนที่ฟังก์ชันเดิม)
 local function changeServer()
-    print("Attempting to change server...")
-    local success, err = pcall(function()
-        -- ใช้ฟังก์ชัน Teleport แบบมาตรฐานเพื่อให้ Roblox หาเซิร์ฟเวอร์ใหม่ให้
-        TeleportService:Teleport(game.PlaceId, player)
-    end)
-
-    if not success then
-        warn("Failed to change server:", err)
-        -- อาจเพิ่มการแจ้งเตือนผู้เล่นที่นี่ว่าย้ายเซิร์ฟเวอร์ไม่สำเร็จ
-    end
+	print("Attempting to change server...")
+	pcall(function()
+		TeleportService:Teleport(game.PlaceId, player)
+	end)
 end
 
--- อย่าลืมแก้การเชื่อมต่อกับปุ่มด้วย
 teleportBtn.MouseButton1Click:Connect(changeServer)
 
 local running = false
 local conn
 
 local function formatTime(t)
-	local m = math.floor(t / 60)
-	local s = math.floor(t % 60)
-	return string.format("%02d:%02d", m, s)
+	return string.format("%02d:%02d", math.floor(t / 60), math.floor(t % 60))
 end
 
 local function stopTimer()
@@ -283,10 +273,8 @@ local function startTimer(duration)
 	if running then return end
 	local seconds = duration or tonumber(inputBox.Text)
 	if not seconds then return end
-
 	running = true
 	local finish = os.clock() + seconds
-
 	conn = RunService.Heartbeat:Connect(function()
 		local timeLeft = math.max(0, finish - os.clock())
 		label.Text = "⏳ " .. formatTime(timeLeft)
@@ -298,61 +286,55 @@ local function startTimer(duration)
 			runBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
 		end
 	end)
-
 	runBtn.Text = "■ Stop Timer"
 	runBtn.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
 end
 
 runBtn.MouseButton1Click:Connect(function()
-	if running then
-		stopTimer()
-	else
-		startTimer()
-	end
+	if running then stopTimer() else startTimer() end
 end)
 
--- ระบบเดินออโต้ติดตามผู้เล่นแบบหลบสิ่งกีดขวางง่าย ๆ
+-- ===================================================================
+-- ##      ระบบติดตามผู้เล่นแบบคำนวณเส้นทาง (Pathfinding)        ##
+-- (คัดลอกทั้งหมดนี้ไปทับของเดิม)
+-- ===================================================================
 
 local humanoid
 local rootPart
 local currentTarget
-
+local selectedTarget
 local followConnection
 
-local MOVE_STEP = 3 -- ระยะเดินทีละก้าว (studs)
-local RAY_DISTANCE = 3 -- ระยะตรวจสอบสิ่งกีดขวางข้างหน้า
-local STEP_DELAY = 0.2
-local CLIMB_HEIGHT = 30
+-- ตัวแปรสำหรับ Pathfinding
+local path
+local waypoints
+local currentWaypointIndex
+local lastPathComputeTime = 0
+local PATH_RECOMPUTE_INTERVAL = 1.0
+local MIN_FOLLOW_DISTANCE = 8
+local SHORT_TELEPORT_DISTANCE = 12 
 
 local function stopFollowing()
 	if followConnection then
 		followConnection:Disconnect()
 		followConnection = nil
 	end
-	if humanoid then
+	if humanoid and humanoid.Health > 0 then
 		humanoid:MoveTo(rootPart.Position)
 	end
+
 	currentTarget = nil
-end
+	path = nil
+	waypoints = nil
+	currentWaypointIndex = nil
 
-local function isObstacleAhead(position, direction)
-	local raycastParams = RaycastParams.new()
-	raycastParams.FilterDescendantsInstances = {player.Character}
-	raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
-	raycastParams.IgnoreWater = true
-
-	local raycastResult = workspace:Raycast(position, direction * RAY_DISTANCE, raycastParams)
-	return raycastResult ~= nil
-end
-
-local function isObstacleAhead(position, direction)
-	local raycastParams = RaycastParams.new()
-	raycastParams.FilterDescendantsInstances = {player.Character}
-	raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
-	raycastParams.IgnoreWater = true
-
-	local raycastResult = workspace:Raycast(position, direction * MOVE_STEP, raycastParams)
-	return raycastResult ~= nil
+	if selectedTarget then
+		followToggleBtn.Text = "▶️ ติดตาม " .. selectedTarget.Name:sub(1,10)
+		followToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 128, 255)
+	else
+		followToggleBtn.Text = "👥 เลือกเป้าหมาย"
+		followToggleBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+	end
 end
 
 local function followPlayer(targetPlayer)
@@ -363,58 +345,89 @@ local function followPlayer(targetPlayer)
 	local myChar = player.Character or player.CharacterAdded:Wait()
 	humanoid = myChar:FindFirstChildOfClass("Humanoid")
 	rootPart = myChar:FindFirstChild("HumanoidRootPart")
+
 	if not humanoid or humanoid.Health <= 0 or not rootPart then return end
 
 	currentTarget = targetPlayer
-	local moveTimer = 0
+	followToggleBtn.Text = "✋ หยุดติดตาม"
+	followToggleBtn.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
 
-	followConnection = RunService.Heartbeat:Connect(function(dt)
-	moveTimer += dt
-	if moveTimer < STEP_DELAY then return end
-	moveTimer = 0
+	followConnection = RunService.Heartbeat:Connect(function()
+		if not currentTarget or not currentTarget.Character or not rootPart or not humanoid or humanoid.Health <= 0 then
+			stopFollowing()
+			return
+		end
 
-	if not currentTarget or not currentTarget.Character or humanoid.Health <= 0 then
-		stopFollowing()
-		return
-	end
+		local targetRoot = currentTarget.Character:FindFirstChild("HumanoidRootPart")
+		if not targetRoot then
+			stopFollowing()
+			return
+		end
 
-    	local targetRoot = currentTarget.Character:FindFirstChild("HumanoidRootPart")
-    	if not targetRoot then
-	    	stopFollowing()
-	    	return
-	    end
+		local distanceToTarget = (rootPart.Position - targetRoot.Position).Magnitude
 
-    	local directionVector = (targetRoot.Position - rootPart.Position)
-    	local distance = directionVector.Magnitude
+		if distanceToTarget < SHORT_TELEPORT_DISTANCE then
+			if distanceToTarget > MIN_FOLLOW_DISTANCE then
+				rootPart.CFrame = targetRoot.CFrame + Vector3.new(0, 4, 0)
+			else
+				humanoid:MoveTo(rootPart.Position)
+			end
+			return
+		end
 
-    if distance <= 5 then
-        return -- หยุดเมื่อใกล้พอ
-    end
+		if os.clock() - lastPathComputeTime > PATH_RECOMPUTE_INTERVAL then
+			lastPathComputeTime = os.clock()
 
-    if distance <= TELEPORT_DISTANCE then
-	    -- ถ้าอยู่สูงกว่าผู้เล่นมาก (เช่น บนหลังคา), ให้วาร์ปลง
-    	if rootPart.Position.Y - targetRoot.Position.Y > 20 then
-    		rootPart.CFrame = CFrame.new(targetRoot.Position + Vector3.new(0, 4, 0))
-    	else
-	    	-- วาร์ปแนวนอนตามปกติ
-	    	rootPart.CFrame = CFrame.new(targetRoot.Position + Vector3.new(0, 5, 0))
-	    end
-	    return
-    end
-	local direction = directionVector.Unit
+			local newPath = PathfindingService:CreatePath({ AgentRadius = 3.5, AgentHeight = 6, AgentCanJump = true })
+			local success, err = pcall(function()
+				newPath:ComputeAsync(rootPart.Position, targetRoot.Position)
+			end)
 
-	    if isObstacleAhead(rootPart.Position, direction) then
-	    	local climbPosition = rootPart.Position + Vector3.new(0, CLIMB_HEIGHT, 0)
-	    	rootPart.CFrame = CFrame.new(climbPosition, targetRoot.Position)
-    	else
-	    	local newPosition = rootPart.Position + direction * MOVE_STEP
-	    	rootPart.CFrame = CFrame.new(newPosition, targetRoot.Position)
-	    end
-    end)
+			if success and newPath.Status == Enum.PathStatus.Success then
+				path = newPath
+				waypoints = path:GetWaypoints()
+				currentWaypointIndex = 2
+
+				path.Blocked:Connect(function(blockedWaypointIndex)
+					if blockedWaypointIndex >= currentWaypointIndex then
+						lastPathComputeTime = 0
+					end
+				end)
+			else
+				path = nil
+				waypoints = nil
+				if distanceToTarget < 20 then
+					rootPart.CFrame = targetRoot.CFrame + Vector3.new(0, 4, 0)
+				end
+			end
+		end
+
+		if waypoints and currentWaypointIndex and waypoints[currentWaypointIndex] then
+			local waypoint = waypoints[currentWaypointIndex]
+			humanoid:MoveTo(waypoint.Position)
+			
+			if (Vector3.new(rootPart.Position.X, 0, rootPart.Position.Z) - Vector3.new(waypoint.Position.X, 0, waypoint.Position.Z)).Magnitude < 4 then
+				currentWaypointIndex += 1
+			end
+		else
+			-- [แก้ไข] ถ้าไม่มีเส้นทาง ให้เดินตรงไปหาเป้าหมายแทนการหยุดนิ่ง
+			humanoid:MoveTo(targetRoot.Position)
+		end
+	end)
 end
 
+-- ===================================================================
+-- ##                     ส่วนควบคุมและอื่นๆ                     ##
+-- ===================================================================
 
--- อัปเดตรายชื่อผู้เล่นใน GUI
+followToggleBtn.MouseButton1Click:Connect(function()
+	if currentTarget then
+		stopFollowing()
+	elseif selectedTarget then
+		followPlayer(selectedTarget)
+	end
+end)
+
 local function updatePlayerList()
 	for _, child in ipairs(playerListFrame:GetChildren()) do
 		if child:IsA("TextButton") then
@@ -437,7 +450,11 @@ local function updatePlayerList()
 			Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
 
 			btn.MouseButton1Click:Connect(function()
-				followPlayer(p)
+				selectedTarget = p
+				if not currentTarget then
+					followToggleBtn.Text = "▶️ ติดตาม " .. p.Name:sub(1, 10)
+					followToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 128, 255)
+				end
 			end)
 		end
 	end
@@ -448,12 +465,8 @@ Players.PlayerRemoving:Connect(updatePlayerList)
 searchBox:GetPropertyChangedSignal("Text"):Connect(updatePlayerList)
 updatePlayerList()
 
-stopFollowBtn.MouseButton1Click:Connect(stopFollowing)
-
--- ตั้งค่าตอนเกิด
 local function setupCharacter(char)
 	local hum = char:WaitForChild("Humanoid")
-
 	hum.Died:Connect(changeServer)
 	hum.HealthChanged:Connect(function(health)
 		if health <= 1 then
@@ -470,9 +483,9 @@ player.CharacterAdded:Connect(function(char)
 	setupCharacter(char)
 	afkTime = 0
 	lastPosition = nil
-    if char:FindFirstChild("HumanoidRootPart") then
-        lastPosition = char.HumanoidRootPart.Position
-    end
+	if char:FindFirstChild("HumanoidRootPart") then
+		lastPosition = char.HumanoidRootPart.Position
+	end
 end)
 
 task.delay(1, function()
@@ -480,11 +493,10 @@ task.delay(1, function()
 end)
 
 local MAX_DISTANCE = 1000
-
 local AFK_ENABLED = true
 local lastPosition = nil
 local afkTime = 0
-local AFK_TIMEOUT = 60  -- 1 นาที
+local AFK_TIMEOUT = 60
 
 afkToggleBtn.MouseButton1Click:Connect(function()
 	AFK_ENABLED = not AFK_ENABLED
@@ -497,15 +509,12 @@ RunService.Heartbeat:Connect(function(dt)
 		afkTimerLabel.Text = "⏱ AFK Timer: --"
 		return
 	end
-
 	if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
-
 	local currentPos = player.Character.HumanoidRootPart.Position
 	if lastPosition and (currentPos - lastPosition).Magnitude < 0.1 then
 		afkTime += dt
 		local remain = math.max(0, AFK_TIMEOUT - afkTime)
 		afkTimerLabel.Text = "⏱ AFK Timer: " .. string.format("%.0f", remain) .. "s"
-
 		if afkTime >= AFK_TIMEOUT then
 			changeServer()
 			afkTime = 0
@@ -515,13 +524,11 @@ RunService.Heartbeat:Connect(function(dt)
 		afkTime = 0
 		afkTimerLabel.Text = "⏱ AFK Timer: " .. AFK_TIMEOUT .. "s"
 	end
-
 	lastPosition = currentPos
 end)
 
 local function createHighlightESP(targetPlayer)
 	if targetPlayer == Players.LocalPlayer then return end
-
 	local function addHighlight(char)
 		if not char:FindFirstChild("FullBodyHighlight") then
 			local highlight = Instance.new("Highlight")
@@ -533,8 +540,6 @@ local function createHighlightESP(targetPlayer)
 			highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 			highlight.Adornee = char
 			highlight.Parent = char
-
-			-- Optional: เพิ่ม BillboardGui เพื่อเห็นชื่อชัดขึ้น
 			if not char:FindFirstChild("ESPName") then
 				local bb = Instance.new("BillboardGui")
 				bb.Name = "ESPName"
@@ -544,7 +549,6 @@ local function createHighlightESP(targetPlayer)
 				bb.StudsOffset = Vector3.new(0, 3, 0)
 				bb.MaxDistance = MAX_DISTANCE
 				bb.Parent = char
-
 				local name = Instance.new("TextLabel")
 				name.Size = UDim2.new(1, 0, 1, 0)
 				name.BackgroundTransparency = 1
@@ -556,25 +560,20 @@ local function createHighlightESP(targetPlayer)
 			end
 		end
 	end
-
 	local function updateVisibilityLoop(char)
 		local highlight = char:FindFirstChild("FullBodyHighlight")
 		if not highlight then return end
-
 		RunService.RenderStepped:Connect(function()
 			local root = char:FindFirstChild("HumanoidRootPart")
 			if not root then return end
-
 			local distance = (root.Position - workspace.CurrentCamera.CFrame.Position).Magnitude
 			highlight.Enabled = distance <= MAX_DISTANCE
 		end)
 	end
-
 	if targetPlayer.Character then
 		addHighlight(targetPlayer.Character)
 		updateVisibilityLoop(targetPlayer.Character)
 	end
-
 	targetPlayer.CharacterAdded:Connect(function(char)
 		repeat task.wait() until char:FindFirstChild("HumanoidRootPart")
 		addHighlight(char)
@@ -582,7 +581,6 @@ local function createHighlightESP(targetPlayer)
 	end)
 end
 
--- เรียกใช้กับผู้เล่นทั้งหมด
 for _, plr in ipairs(Players:GetPlayers()) do
 	createHighlightESP(plr)
 end
