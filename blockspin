@@ -1,6 +1,6 @@
 -- ===================================================================
--- ##   AKB Akibus Shop - Final Version v2.5                        ##
--- ##   ลบระบบ Hop at 15 และขยายหน้ารายชื่อผู้เล่น                   ##
+-- ##   AKB Akibus Shop - Rejoin Edition v2.7                       ##
+-- ##   เปลี่ยนระบบย้ายเซิร์ฟทั้งหมดเป็นการเข้าห้องเดิม (Rejoin)       ##
 -- ===================================================================
 
 local Players = game:GetService("Players")
@@ -12,6 +12,10 @@ local PathfindingService = game:GetService("PathfindingService")
 local player = Players.LocalPlayer
 local guiSaveKey = "GuiPos_" .. player.UserId
 
+-- [[ การตั้งค่า ]] --
+local FOLLOW_SPEED = 50 -- ปรับความเร็วในการวิ่งตามที่นี่ (ค่าปกติคือ 16)
+-- [[ --------- ]] --
+
 -- สร้าง GUI หลัก
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "MainGui"
@@ -19,8 +23,8 @@ screenGui.ResetOnSpawn = false
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 480, 0, 360) -- ขนาด UI แบบดั้งเดิม
-frame.Position = UDim2.new(0.5, -240, 0.5, -180) -- ตำแหน่งกลางจอแบบดั้งเดิม
+frame.Size = UDim2.new(0, 480, 0, 360) 
+frame.Position = UDim2.new(0.5, -240, 0.5, -180) 
 frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 frame.Active = true
 frame.Draggable = true
@@ -40,7 +44,7 @@ shadow.ZIndex = 0
 shadow.Parent = frame
 
 local banner = Instance.new("Frame")
-banner.Size = UDim2.new(1, 0, 0, 43) -- ขนาด Banner แบบ Pixel
+banner.Size = UDim2.new(1, 0, 0, 43) 
 banner.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
 banner.Parent = frame
 Instance.new("UICorner", banner).CornerRadius = UDim.new(0, 12)
@@ -48,7 +52,7 @@ Instance.new("UICorner", banner).CornerRadius = UDim.new(0, 12)
 local bannerText = Instance.new("TextLabel")
 bannerText.Size = UDim2.new(1, 0, 1, 0)
 bannerText.BackgroundTransparency = 1
-bannerText.Text = "✨ AKB akibus shop (Final v2.5)"
+bannerText.Text = "✨ AKB akibus shop (Rejoin v2.7)"
 bannerText.TextColor3 = Color3.new(1, 1, 1)
 bannerText.Font = Enum.Font.GothamBold
 bannerText.TextSize = 20
@@ -81,7 +85,7 @@ local inputBox = Instance.new("TextBox")
 inputBox.Size = UDim2.new(0.5, -20, 0.1, 0)
 inputBox.Position = UDim2.new(0, 10, 0.24, 0)
 inputBox.PlaceholderText = "Time in seconds"
-inputBox.Text = "900"
+inputBox.Text = "3600"
 inputBox.TextColor3 = Color3.new(1, 1, 1)
 inputBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 inputBox.ClearTextOnFocus = false
@@ -105,7 +109,7 @@ local teleportBtn = Instance.new("TextButton")
 teleportBtn.Size = UDim2.new(0.5, -20, 0.12, 0)
 teleportBtn.Position = UDim2.new(0, 10, 0.50, 0)
 teleportBtn.BackgroundColor3 = Color3.fromRGB(0, 128, 255)
-teleportBtn.Text = "📉 หาห้องน้อยสุด"
+teleportBtn.Text = "🔄 เข้าห้องเดิม (Rejoin)" -- [[ แก้ไข: เปลี่ยนข้อความปุ่ม ]]
 teleportBtn.TextColor3 = Color3.new(1, 1, 1)
 teleportBtn.Font = Enum.Font.GothamBold
 teleportBtn.TextSize = 16
@@ -113,7 +117,7 @@ teleportBtn.Parent = frame
 Instance.new("UICorner", teleportBtn).CornerRadius = UDim.new(0, 14)
 
 local playerListFrame = Instance.new("ScrollingFrame")
-playerListFrame.Size = UDim2.new(0.45, -10, 0.76, -10) -- [[ แก้ไข: ขยายขนาด Y ให้ยาวลงมา ]]
+playerListFrame.Size = UDim2.new(0.45, -10, 0.76, -10) 
 playerListFrame.Position = UDim2.new(0.55, 10, 0.24, 0)
 playerListFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 playerListFrame.BorderSizePixel = 0
@@ -231,29 +235,12 @@ toggleBtn.MouseButton1Click:Connect(function()
     toggleBtn.Text = frame.Visible and "-" or "+"
 end)
 
+-- [[ แก้ไข: เปลี่ยนฟังก์ชันย้ายเซิร์ฟทั้งหมดเป็นการ Rejoin ]] --
 local function changeServer()
-	print("Attempting smart search for the smallest server...")
-	local requestUrl = string.format("https://games.roproxy.com/v1/games/%d/servers/Public?sortOrder=Asc&limit=20", game.PlaceId)
-	local success, response = pcall(function() return HttpService:GetAsync(requestUrl) end)
-	if success then
-		local serverData_success, serverData = pcall(function() return HttpService:JSONDecode(response) end)
-		if serverData_success and type(serverData) == "table" and serverData.data then
-			local targetServerId = nil
-			for _, server in ipairs(serverData.data) do
-				if server.id ~= game.JobId and server.playing < server.maxPlayers then
-					targetServerId = server.id
-					break
-				end
-			end
-			if targetServerId then
-				print("Smart search success! Teleporting to smallest server: " .. targetServerId)
-				TeleportService:TeleportToPlaceInstance(game.PlaceId, targetServerId, player)
-				return
-			end
-		end
-	end
-	print("Smart search failed. Switching to simple random hop.")
-	pcall(function() TeleportService:Teleport(game.PlaceId, player) end)
+	print("Rejoining current server (JobId: " .. game.JobId .. ")...")
+	pcall(function()
+		TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, player)
+	end)
 end
 
 teleportBtn.MouseButton1Click:Connect(changeServer)
@@ -285,7 +272,7 @@ local function startTimer(duration)
 		if timeLeft <= 0 then
 			conn:Disconnect()
 			running = false
-			changeServer()
+			changeServer() -- <-- จะเรียกใช้ฟังก์ชัน Rejoin
 			runBtn.Text = "▶ Start Timer"
 			runBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
 		end
@@ -298,11 +285,13 @@ runBtn.MouseButton1Click:Connect(function()
     if running then stopTimer() else startTimer() end
 end)
 
+-- [[ ส่วนควบคุมการติดตามผู้เล่น ]] --
 local humanoid
 local rootPart
 local currentTarget
 local selectedTarget
 local followConnection
+local originalWalkSpeed
 local path
 local waypoints
 local currentWaypointIndex
@@ -318,6 +307,7 @@ local function stopFollowing()
     end
     if humanoid and humanoid.Health > 0 then
         humanoid:MoveTo(rootPart.Position)
+        humanoid.WalkSpeed = originalWalkSpeed or 16
     end
     currentTarget = nil
     path = nil
@@ -339,6 +329,10 @@ local function followPlayer(targetPlayer)
     humanoid = myChar:FindFirstChildOfClass("Humanoid")
     rootPart = myChar:FindFirstChild("HumanoidRootPart")
     if not humanoid or humanoid.Health <= 0 or not rootPart then return end
+    
+    originalWalkSpeed = humanoid.WalkSpeed
+    humanoid.WalkSpeed = FOLLOW_SPEED
+    
     currentTarget = targetPlayer
     followToggleBtn.Text = "✋ หยุดติดตาม"
     followToggleBtn.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
@@ -434,10 +428,10 @@ updatePlayerList()
 
 local function setupCharacter(char)
     local hum = char:WaitForChild("Humanoid")
-    hum.Died:Connect(changeServer)
+    hum.Died:Connect(changeServer) -- <-- จะเรียกใช้ฟังก์ชัน Rejoin
     hum.HealthChanged:Connect(function(health)
         if health <= 1 then
-            changeServer()
+            changeServer() -- <-- จะเรียกใช้ฟังก์ชัน Rejoin
         elseif health < 30 then
             stopTimer()
             startTimer(2)
@@ -486,9 +480,9 @@ RunService.Heartbeat:Connect(function(dt)
         local remain = math.max(0, AFK_TIMEOUT - afkTime)
         afkTimerLabel.Text = "⏱ AFK Timer: " .. string.format("%.0f", remain) .. "s"
         if afkTime >= AFK_TIMEOUT then
-            changeServer()
+            changeServer() -- <-- จะเรียกใช้ฟังก์ชัน Rejoin
             afkTime = 0
-            afkTimerLabel.Text = "🔄 Changing Server..."
+            afkTimerLabel.Text = "🔄 Rejoining Server..."
         end
     else
         afkTime = 0
