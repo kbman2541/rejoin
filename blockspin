@@ -1,6 +1,6 @@
 -- ===================================================================
--- ##   AKB Akibus Shop - Responsive UI Edition v2.4 (Full & Formatted) ##
--- ##   แก้ไขการจัดรูปแบบโค้ดทั้งหมด และรวมฟังก์ชันล่าสุด             ##
+-- ##   AKB Akibus Shop - Final Version v2.5                        ##
+-- ##   ลบระบบ Hop at 15 และขยายหน้ารายชื่อผู้เล่น                   ##
 -- ===================================================================
 
 local Players = game:GetService("Players")
@@ -19,21 +19,13 @@ screenGui.ResetOnSpawn = false
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame")
--- ใช้ Scale แทน Offset เพื่อให้ปรับขนาดตามหน้าจอ
-frame.Size = UDim2.new(0.25, 0, 0.4, 0) 
-frame.Position = UDim2.new(0.5, 0, 0.5, 0)
-frame.AnchorPoint = Vector2.new(0.5, 0.5) -- ตั้งจุดกลางเพื่อให้ขยายออกจากตรงกลาง
+frame.Size = UDim2.new(0, 480, 0, 360) -- ขนาด UI แบบดั้งเดิม
+frame.Position = UDim2.new(0.5, -240, 0.5, -180) -- ตำแหน่งกลางจอแบบดั้งเดิม
 frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 frame.Active = true
 frame.Draggable = true
 frame.Parent = screenGui
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
-
--- เพิ่มตัวรักษาสัดส่วน UI ให้คงที่
-local aspectRatio = Instance.new("UIAspectRatioConstraint")
-aspectRatio.AspectRatio = 480 / 360 -- 4:3 ratio
-aspectRatio.DominantAxis = Enum.DominantAxis.Height
-aspectRatio.Parent = frame
 
 local shadow = Instance.new("ImageLabel")
 shadow.BackgroundTransparency = 1
@@ -42,13 +34,13 @@ shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
 shadow.ImageTransparency = 0.5
 shadow.ScaleType = Enum.ScaleType.Slice
 shadow.SliceCenter = Rect.new(10, 10, 118, 118)
-shadow.Size = UDim2.new(1, 20, 1, 20)
-shadow.Position = UDim2.new(0, -10, 0, -10)
+shadow.Size = frame.Size + UDim2.new(0, 20, 0, 20)
+shadow.Position = frame.Position + UDim2.new(0, -10, 0, -10)
 shadow.ZIndex = 0
 shadow.Parent = frame
 
 local banner = Instance.new("Frame")
-banner.Size = UDim2.new(1, 0, 0.12, 0)
+banner.Size = UDim2.new(1, 0, 0, 43) -- ขนาด Banner แบบ Pixel
 banner.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
 banner.Parent = frame
 Instance.new("UICorner", banner).CornerRadius = UDim.new(0, 12)
@@ -56,28 +48,25 @@ Instance.new("UICorner", banner).CornerRadius = UDim.new(0, 12)
 local bannerText = Instance.new("TextLabel")
 bannerText.Size = UDim2.new(1, 0, 1, 0)
 bannerText.BackgroundTransparency = 1
-bannerText.Text = "✨ AKB akibus shop v2.4"
+bannerText.Text = "✨ AKB akibus shop (Final v2.5)"
 bannerText.TextColor3 = Color3.new(1, 1, 1)
 bannerText.Font = Enum.Font.GothamBold
-bannerText.TextScaled = true -- ปรับขนาดตัวอักษรอัตโนมัติ
-bannerText.TextWrapped = true
+bannerText.TextSize = 20
 bannerText.Parent = banner
 
 local label = Instance.new("TextLabel")
-label.Size = UDim2.new(0.48, 0, 0.1, 0)
-label.Position = UDim2.new(0.02, 0, 0.14, 0)
+label.Size = UDim2.new(0.5, -20, 0.1, 0)
+label.Position = UDim2.new(0, 10, 0.14, 0)
 label.BackgroundTransparency = 1
 label.Text = "📟 Auto Rejoin System"
 label.TextColor3 = Color3.new(1, 1, 1)
+label.TextSize = 16
 label.Font = Enum.Font.GothamBold
-label.TextScaled = true
-label.TextWrapped = true
-label.TextXAlignment = Enum.TextXAlignment.Left
 label.Parent = frame
 
 local searchBox = Instance.new("TextBox")
-searchBox.Size = UDim2.new(0.43, 0, 0.08, 0)
-searchBox.Position = UDim2.new(0.55, 0, 0.14, 0)
+searchBox.Size = UDim2.new(0.45, -10, 0.08, 0)
+searchBox.Position = UDim2.new(0.55, 10, 0.14, 0)
 searchBox.PlaceholderText = "🔍 ค้นหาผู้เล่น"
 searchBox.TextColor3 = Color3.new(1, 1, 1)
 searchBox.TextSize = 14
@@ -89,8 +78,8 @@ searchBox.Parent = frame
 Instance.new("UICorner", searchBox).CornerRadius = UDim.new(0, 8)
 
 local inputBox = Instance.new("TextBox")
-inputBox.Size = UDim2.new(0.48, 0, 0.1, 0)
-inputBox.Position = UDim2.new(0.02, 0, 0.24, 0)
+inputBox.Size = UDim2.new(0.5, -20, 0.1, 0)
+inputBox.Position = UDim2.new(0, 10, 0.24, 0)
 inputBox.PlaceholderText = "Time in seconds"
 inputBox.Text = "900"
 inputBox.TextColor3 = Color3.new(1, 1, 1)
@@ -102,32 +91,30 @@ inputBox.Parent = frame
 Instance.new("UICorner", inputBox).CornerRadius = UDim.new(0, 12)
 
 local runBtn = Instance.new("TextButton")
-runBtn.Size = UDim2.new(0.48, 0, 0.12, 0)
-runBtn.Position = UDim2.new(0.02, 0, 0.36, 0)
+runBtn.Size = UDim2.new(0.5, -20, 0.12, 0)
+runBtn.Position = UDim2.new(0, 10, 0.36, 0)
 runBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
 runBtn.Text = "▶ Start Timer"
 runBtn.TextColor3 = Color3.new(1, 1, 1)
 runBtn.Font = Enum.Font.GothamBold
-runBtn.TextScaled = true
-runBtn.TextWrapped = true
+runBtn.TextSize = 16
 runBtn.Parent = frame
 Instance.new("UICorner", runBtn).CornerRadius = UDim.new(0, 14)
 
 local teleportBtn = Instance.new("TextButton")
-teleportBtn.Size = UDim2.new(0.48, 0, 0.12, 0)
-teleportBtn.Position = UDim2.new(0.02, 0, 0.50, 0)
+teleportBtn.Size = UDim2.new(0.5, -20, 0.12, 0)
+teleportBtn.Position = UDim2.new(0, 10, 0.50, 0)
 teleportBtn.BackgroundColor3 = Color3.fromRGB(0, 128, 255)
 teleportBtn.Text = "📉 หาห้องน้อยสุด"
 teleportBtn.TextColor3 = Color3.new(1, 1, 1)
 teleportBtn.Font = Enum.Font.GothamBold
-teleportBtn.TextScaled = true
-teleportBtn.TextWrapped = true
+teleportBtn.TextSize = 16
 teleportBtn.Parent = frame
 Instance.new("UICorner", teleportBtn).CornerRadius = UDim.new(0, 14)
 
 local playerListFrame = Instance.new("ScrollingFrame")
-playerListFrame.Size = UDim2.new(0.43, 0, 0.55, 0)
-playerListFrame.Position = UDim2.new(0.55, 0, 0.24, 0)
+playerListFrame.Size = UDim2.new(0.45, -10, 0.76, -10) -- [[ แก้ไข: ขยายขนาด Y ให้ยาวลงมา ]]
+playerListFrame.Position = UDim2.new(0.55, 10, 0.24, 0)
 playerListFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 playerListFrame.BorderSizePixel = 0
 playerListFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
@@ -153,8 +140,8 @@ toggleBtn.Parent = screenGui
 Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 8)
 
 local roomIdInput = Instance.new("TextBox")
-roomIdInput.Size = UDim2.new(0.48, 0, 0.08, 0)
-roomIdInput.Position = UDim2.new(0.02, 0, 0.73, 0)
+roomIdInput.Size = UDim2.new(0.5, -20, 0.08, 0)
+roomIdInput.Position = UDim2.new(0, 10, 0.73, 0)
 roomIdInput.PlaceholderText = "✏️ ใส่ Room ID"
 roomIdInput.TextColor3 = Color3.new(1, 1, 1)
 roomIdInput.TextSize = 14
@@ -166,8 +153,8 @@ roomIdInput.Parent = frame
 Instance.new("UICorner", roomIdInput).CornerRadius = UDim.new(0, 8)
 
 local roomIdLabel = Instance.new("TextButton")
-roomIdLabel.Size = UDim2.new(0.48, 0, 0.08, 0)
-roomIdLabel.Position = UDim2.new(0.02, 0, 0.63, 0)
+roomIdLabel.Size = UDim2.new(0.5, -20, 0.08, 0)
+roomIdLabel.Position = UDim2.new(0, 10, 0.63, 0)
 roomIdLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 roomIdLabel.TextColor3 = Color3.new(1, 1, 1)
 roomIdLabel.Font = Enum.Font.Gotham
@@ -212,30 +199,15 @@ followToggleBtn.Parent = screenGui
 Instance.new("UICorner", followToggleBtn).CornerRadius = UDim.new(0, 8)
 
 local joinByIdBtn = Instance.new("TextButton")
-joinByIdBtn.Size = UDim2.new(0.48, 0, 0.12, 0)
-joinByIdBtn.Position = UDim2.new(0.02, 0, 0.83, 0)
+joinByIdBtn.Size = UDim2.new(0.5, -20, 0.12, 0)
+joinByIdBtn.Position = UDim2.new(0, 10, 0.83, 0)
 joinByIdBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
 joinByIdBtn.Text = "🔑 Join by Room ID"
 joinByIdBtn.TextColor3 = Color3.new(1, 1, 1)
 joinByIdBtn.Font = Enum.Font.GothamBold
-joinByIdBtn.TextScaled = true
-joinByIdBtn.TextWrapped = true
+joinByIdBtn.TextSize = 16
 joinByIdBtn.Parent = frame
 Instance.new("UICorner", joinByIdBtn).CornerRadius = UDim.new(0, 14)
-
-local hopToggleBtn = Instance.new("TextButton")
-hopToggleBtn.Name = "HopToggleButton"
-hopToggleBtn.Size = UDim2.new(0.43, 0, 0.1, 0)
-hopToggleBtn.Position = UDim2.new(0.55, 0, 0.81, 0) -- ตำแหน่งใหม่ ใต้รายชื่อผู้เล่น
-hopToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
-hopToggleBtn.Text = "Hop at 15: ON"
-hopToggleBtn.TextColor3 = Color3.new(1, 1, 1)
-hopToggleBtn.Font = Enum.Font.GothamBold
-hopToggleBtn.TextScaled = true
-hopToggleBtn.TextWrapped = true
-hopToggleBtn.Parent = frame -- เปลี่ยน Parent มาเป็น frame
-Instance.new("UICorner", hopToggleBtn).CornerRadius = UDim.new(0, 8)
-
 
 joinByIdBtn.MouseButton1Click:Connect(function()
     local roomId = roomIdInput.Text
@@ -584,36 +556,3 @@ for _, plr in ipairs(Players:GetPlayers()) do
     createHighlightESP(plr)
 end
 Players.PlayerAdded:Connect(createHighlightESP)
-
--- ===================================================================
--- ##   ส่วนควบคุม: ย้ายเซิร์ฟเวอร์เมื่อผู้เล่นเต็ม                    ##
--- ===================================================================
-local MAX_PLAYER_LIMIT = 15
-local playerCountHopEnabled = true -- เปิดใช้งานเป็นค่าเริ่มต้น
-local isHopping = false -- ตัวแปรป้องกันการย้ายซ้ำซ้อน
-
-hopToggleBtn.MouseButton1Click:Connect(function()
-    playerCountHopEnabled = not playerCountHopEnabled -- สลับค่า true/false
-    if playerCountHopEnabled then
-        hopToggleBtn.Text = "Hop at 15: ON"
-        hopToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0) -- สีเขียว
-    else
-        hopToggleBtn.Text = "Hop at 15: OFF"
-        hopToggleBtn.BackgroundColor3 = Color3.fromRGB(170, 0, 0) -- สีแดง
-    end
-end)
-
-local function checkPlayerCountAndHop()
-    if not playerCountHopEnabled or isHopping then return end
-    local playerCount = #Players:GetPlayers()
-    if playerCount >= MAX_PLAYER_LIMIT then
-        isHopping = true 
-        print("Player count limit reached (" .. playerCount .. "/" .. MAX_PLAYER_LIMIT .. "). Changing server...")
-        changeServer()
-    end
-end
-
-Players.PlayerAdded:Connect(checkPlayerCountAndHop)
-
-task.wait(5) 
-checkPlayerCountAndHop()
