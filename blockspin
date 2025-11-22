@@ -1,6 +1,6 @@
 -- ===================================================================
--- ##   AKB Akibus Shop - Rejoin Edition v2.7                       ##
--- ##   เปลี่ยนระบบย้ายเซิร์ฟทั้งหมดเป็นการเข้าห้องเดิม (Rejoin)       ##
+-- ##    AKB Akibus Shop - Exit Game Edition v2.7                     ##
+-- ##    เปลี่ยนระบบย้ายเซิร์ฟทั้งหมดเป็นการออกจากเกม (Exit Game)        ##
 -- ===================================================================
 
 local Players = game:GetService("Players")
@@ -23,8 +23,8 @@ screenGui.ResetOnSpawn = false
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 480, 0, 360) 
-frame.Position = UDim2.new(0.5, -240, 0.5, -180) 
+frame.Size = UDim2.new(0, 480, 0, 360)
+frame.Position = UDim2.new(0.5, -240, 0.5, -180)
 frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 frame.Active = true
 frame.Draggable = true
@@ -44,7 +44,7 @@ shadow.ZIndex = 0
 shadow.Parent = frame
 
 local banner = Instance.new("Frame")
-banner.Size = UDim2.new(1, 0, 0, 43) 
+banner.Size = UDim2.new(1, 0, 0, 43)
 banner.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
 banner.Parent = frame
 Instance.new("UICorner", banner).CornerRadius = UDim.new(0, 12)
@@ -52,7 +52,7 @@ Instance.new("UICorner", banner).CornerRadius = UDim.new(0, 12)
 local bannerText = Instance.new("TextLabel")
 bannerText.Size = UDim2.new(1, 0, 1, 0)
 bannerText.BackgroundTransparency = 1
-bannerText.Text = "✨ AKB akibus shop (Rejoin v2.7)"
+bannerText.Text = "✨ AKB akibus shop (Exit Game v2.7)"
 bannerText.TextColor3 = Color3.new(1, 1, 1)
 bannerText.Font = Enum.Font.GothamBold
 bannerText.TextSize = 20
@@ -62,7 +62,7 @@ local label = Instance.new("TextLabel")
 label.Size = UDim2.new(0.5, -20, 0.1, 0)
 label.Position = UDim2.new(0, 10, 0.14, 0)
 label.BackgroundTransparency = 1
-label.Text = "📟 Auto Rejoin System"
+label.Text = "🚪 Auto Exit System"
 label.TextColor3 = Color3.new(1, 1, 1)
 label.TextSize = 16
 label.Font = Enum.Font.GothamBold
@@ -85,7 +85,7 @@ local inputBox = Instance.new("TextBox")
 inputBox.Size = UDim2.new(0.5, -20, 0.1, 0)
 inputBox.Position = UDim2.new(0, 10, 0.24, 0)
 inputBox.PlaceholderText = "Time in seconds"
-inputBox.Text = "36000"
+inputBox.Text = "3600"
 inputBox.TextColor3 = Color3.new(1, 1, 1)
 inputBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 inputBox.ClearTextOnFocus = false
@@ -108,8 +108,8 @@ Instance.new("UICorner", runBtn).CornerRadius = UDim.new(0, 14)
 local teleportBtn = Instance.new("TextButton")
 teleportBtn.Size = UDim2.new(0.5, -20, 0.12, 0)
 teleportBtn.Position = UDim2.new(0, 10, 0.50, 0)
-teleportBtn.BackgroundColor3 = Color3.fromRGB(0, 128, 255)
-teleportBtn.Text = "🔄 เข้าห้องเดิม (Rejoin)" -- [[ แก้ไข: เปลี่ยนข้อความปุ่ม ]]
+teleportBtn.BackgroundColor3 = Color3.fromRGB(180, 0, 0) -- เปลี่ยนสีเป็นสีแดงสำหรับปุ่มออกจากเกม
+teleportBtn.Text = "🚪 ออกจากเกม (Exit Game)" -- [[ แก้ไข: เปลี่ยนข้อความปุ่ม ]]
 teleportBtn.TextColor3 = Color3.new(1, 1, 1)
 teleportBtn.Font = Enum.Font.GothamBold
 teleportBtn.TextSize = 16
@@ -117,7 +117,7 @@ teleportBtn.Parent = frame
 Instance.new("UICorner", teleportBtn).CornerRadius = UDim.new(0, 14)
 
 local playerListFrame = Instance.new("ScrollingFrame")
-playerListFrame.Size = UDim2.new(0.45, -10, 0.76, -10) 
+playerListFrame.Size = UDim2.new(0.45, -10, 0.76, -10)
 playerListFrame.Position = UDim2.new(0.55, 10, 0.24, 0)
 playerListFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 playerListFrame.BorderSizePixel = 0
@@ -146,7 +146,7 @@ Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 8)
 local roomIdInput = Instance.new("TextBox")
 roomIdInput.Size = UDim2.new(0.5, -20, 0.08, 0)
 roomIdInput.Position = UDim2.new(0, 10, 0.73, 0)
-roomIdInput.PlaceholderText = "✏️ ใส่ Room ID"
+roomIdInput.PlaceholderText = "✏️ ใส่ Room ID (สำหรับ Join)"
 roomIdInput.TextColor3 = Color3.new(1, 1, 1)
 roomIdInput.TextSize = 14
 roomIdInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
@@ -173,7 +173,7 @@ afkToggleBtn.Size = UDim2.new(0, 140, 0, 30)
 afkToggleBtn.Position = UDim2.new(0, 10, 0.5, -15)
 afkToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
 afkToggleBtn.TextColor3 = Color3.new(1, 1, 1)
-afkToggleBtn.Text = "✅ Auto Rejoin: ON"
+afkToggleBtn.Text = "✅ Auto Exit: ON" -- [[ แก้ไข: เปลี่ยนข้อความเป็น Auto Exit ]]
 afkToggleBtn.Font = Enum.Font.GothamBold
 afkToggleBtn.TextSize = 14
 afkToggleBtn.Parent = screenGui
@@ -235,15 +235,15 @@ toggleBtn.MouseButton1Click:Connect(function()
     toggleBtn.Text = frame.Visible and "-" or "+"
 end)
 
--- [[ แก้ไข: เปลี่ยนฟังก์ชันย้ายเซิร์ฟทั้งหมดเป็นการ Rejoin ]] --
-local function changeServer()
-	print("Rejoining current server (JobId: " .. game.JobId .. ")...")
+-- [[ แก้ไข: เปลี่ยนฟังก์ชันย้ายเซิร์ฟทั้งหมดเป็นการออกจากเกม (Exit Game) ]] --
+local function exitGame()
+	print("Exiting game...")
 	pcall(function()
-		TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, player)
+		player:Kick("Leaving the game (Auto Exit Triggered).")
 	end)
 end
 
-teleportBtn.MouseButton1Click:Connect(changeServer)
+teleportBtn.MouseButton1Click:Connect(exitGame) -- [[ อัปเดต: ใช้ exitGame ]]
 
 local running = false
 local conn
@@ -255,7 +255,7 @@ end
 local function stopTimer()
 	if conn then conn:Disconnect() end
 	running = false
-	label.Text = "📟 Auto Rejoin System"
+	label.Text = "🚪 Auto Exit System" -- [[ อัปเดต: ข้อความ ]]
 	runBtn.Text = "▶ Start Timer"
 	runBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
 end
@@ -272,7 +272,7 @@ local function startTimer(duration)
 		if timeLeft <= 0 then
 			conn:Disconnect()
 			running = false
-			changeServer() -- <-- จะเรียกใช้ฟังก์ชัน Rejoin
+			exitGame() -- [[ อัปเดต: ใช้ exitGame ]]
 			runBtn.Text = "▶ Start Timer"
 			runBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
 		end
@@ -428,10 +428,10 @@ updatePlayerList()
 
 local function setupCharacter(char)
     local hum = char:WaitForChild("Humanoid")
-    hum.Died:Connect(changeServer) -- <-- จะเรียกใช้ฟังก์ชัน Rejoin
+    hum.Died:Connect(exitGame) -- [[ อัปเดต: ใช้ exitGame ]]
     hum.HealthChanged:Connect(function(health)
         if health <= 1 then
-            changeServer() -- <-- จะเรียกใช้ฟังก์ชัน Rejoin
+            exitGame() -- [[ อัปเดต: ใช้ exitGame ]]
         elseif health < 30 then
             stopTimer()
             startTimer(2)
@@ -464,7 +464,7 @@ local AFK_TIMEOUT = 60
 
 afkToggleBtn.MouseButton1Click:Connect(function()
     AFK_ENABLED = not AFK_ENABLED
-    afkToggleBtn.Text = AFK_ENABLED and "✅ Auto Rejoin: ON" or "🛑 Auto Rejoin: OFF"
+    afkToggleBtn.Text = AFK_ENABLED and "✅ Auto Exit: ON" or "🛑 Auto Exit: OFF" -- [[ อัปเดต: ข้อความ ]]
     afkToggleBtn.BackgroundColor3 = AFK_ENABLED and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(80, 80, 80)
 end)
 
@@ -480,9 +480,9 @@ RunService.Heartbeat:Connect(function(dt)
         local remain = math.max(0, AFK_TIMEOUT - afkTime)
         afkTimerLabel.Text = "⏱ AFK Timer: " .. string.format("%.0f", remain) .. "s"
         if afkTime >= AFK_TIMEOUT then
-            changeServer() -- <-- จะเรียกใช้ฟังก์ชัน Rejoin
+            exitGame() -- [[ อัปเดต: ใช้ exitGame ]]
             afkTime = 0
-            afkTimerLabel.Text = "🔄 Rejoining Server..."
+            afkTimerLabel.Text = "🚪 Exiting Game..." -- [[ อัปเดต: ข้อความ ]]
         end
     else
         afkTime = 0
